@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chris Lapena</title>
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png?v=2">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=2">
+<link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48.png?v=2">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;700;800&family=Italiana&display=swap" rel="stylesheet">
+<style>
+  /* Alpha Lyrae — Fontfabric, SIL Open Font License 1.1, embedded locally (self-contained, no external host) */
+  @font-face {
+    font-family: 'Alpha Lyrae';
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+    src: url(fonts/AlphaLyrae-Medium.ttf) format("truetype");
+  }
+
+  :root {
+    --bg-black: #0f0f0f;
+    --card-black: #131313;
+    --pill-grey: #2d2d2d;
+    --line-grey: #2c2c2c;
+    --muted: #c6c6c6;
+    --accent-line: #d9d9d9;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    color: #fff;
+    font-family: 'Alexandria', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;    /* no rubber-band bounce past the footer revealing the page background */
+    cursor: url('assets/cursor-dart.svg') 2 2, auto;
+  }
+
+  html {
+    background: var(--bg-black);
+  }
+  /* the published page is embedded in a wrapper whose body is light (#faf9f5); without this, that body background paints over the NEAT canvas
+     (a fixed, z-index -1 layer) and the hero shows as a blank light page with white text. The html background above is what shows through. */
+  body { background: transparent; }
+
+  a { color: inherit; }
+  a, button, [role="button"], label[for], input[type="submit"], input[type="button"], select {
+    cursor: pointer;
+  }
+
+  .wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+    min-height: max(791px, calc(50vh + 100px));   /* tall windows: room for the text block, which follows the window height (below) */
+    display: flex;
+    align-items: center;
+    padding: 90px 0 60px;
+  }
+
+  .hero-gradient-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    /* extra height pushes the NEAT library's bottom-right watermark below the visible viewport (fixed positioning clips it there permanently) */
+    height: calc(100vh + 120px);
+    display: block;
+    z-index: -1;
+  }
+  /* PS2 theme: no watermark to hide, so the canvas is exactly the viewport */
+  .hero-gradient-canvas.bf { height: 100%; background: #05070d; }
+
+  .hero-inner {
+    width: 100%;
+  }
+
+
+  .hero-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .eyebrow {
+    font-size: 24px;
+    margin: 0;
+    font-weight: 400;
+    position: absolute;
+    top: calc(max(259px, (100vh - 88px) / 2) - 159px);   /* the hero text is centred in the animated background above the peeking cards (window height minus their 88px), as on a MacBook Pro 16" in Chrome, where this is the original 293px */
+    left: 100px;
+    z-index: 50;
+  }
+  .eyebrow b { font-weight: 800; }
+
+  .headline {
+    font-family: 'Alpha Lyrae', 'Alexandria', sans-serif;
+    font-weight: 500;
+    font-size: clamp(40px, 5.5vw, 70px);
+    line-height: 1.05;
+    margin: 0;
+    position: absolute;
+    top: calc(max(259px, (100vh - 88px) / 2) - 112px);   /* 340px at that size */
+    left: 100px;
+    z-index: 50;
+    max-width: min(640px, calc(100vw - 200px));
+    letter-spacing: 0;
+  }
+  .hl { display: block; white-space: nowrap; }
+  .hl-into {
+    overflow: hidden;
+    text-indent: -5.245em;
+    padding-bottom: 0.25em;
+    margin-bottom: -0.25em;
+  }
+  .warp { position: relative; }
+  .warp::before,
+  .warp::after {
+    content: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+  .warp::before { color: #35b5ff; }
+  .warp::after { color: #ffffff; }
+  .warp.is-glitching {
+    display: inline-block;
+    filter: url(#warp-filter);
+    transform: skewX(-9deg);
+    text-shadow: 2px 0 rgba(53, 181, 255, 0.5), -2px 0 rgba(255, 255, 255, 0.35);
+  }
+  .warp.is-glitching::before,
+  .warp.is-glitching::after { content: attr(data-text); }
+  .warp.is-glitching::before {
+    opacity: 0.7;
+    transform: translate(-5px, 1px);
+    clip-path: inset(6% 0 56% 0);
+  }
+  .warp.is-glitching::after {
+    opacity: 0.7;
+    transform: translate(5px, -1px);
+    clip-path: inset(50% 0 3% 0);
+  }
+  .glitch-word {
+    display: inline-block;
+    width: 3.386em;
+    height: 0.906em;
+    vertical-align: -0.203em;
+  }
+  .headline em {
+    font-family: 'Italiana', 'Alpha Lyrae', serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 1.057em;
+    letter-spacing: -0.02em;
+  }
+
+  .bio {
+    width: 308px;
+    max-width: 308px;
+    position: absolute;
+    top: calc(max(259px, (100vh - 88px) / 2) + 21px);   /* 473px at that size */
+    right: 100px;
+    z-index: 50;
+  }
+  .bio .rule {
+    width: 28px;
+    height: 4px;
+    border-radius: 10px;
+    background: var(--accent-line);
+    margin-bottom: 14px;
+  }
+  .bio p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+
+  /* screens 1990px wide and up: wider side margins for the hero text (180px left, 220px right, instead of 100px) */
+  @media (min-width: 1990px) {
+    .eyebrow, .headline { left: 180px; }
+    .bio { right: 220px; }
+    .headline { font-size: 88px; max-width: 840px; }   /* slightly bigger headline (88px; 70px below 1990px); the glitched words are sized in em, so they scale with it */
+  }
+
+  /* ---------- SELECTED WORKS: classic 2-column grid (the very first "Home" design) ---------- */
+  .strip-pin { position: relative; margin-top: 240px; }  /* padding-bottom set by JS, equal to the footer's height (harmless no-op now that .strip isn't sticky) */
+  /* composite mock overlays, reused inside .card-media for cards 1, 3 (Home Page Redesign) and 5 */
+  .sc-zoom { position: absolute; inset: 0; display: block; }
+  .sc-zoom > img { display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; }
+  .sc-t5 .sc-t5-bg { position: absolute; inset: 0; }
+  .sc-t5-mock { position: absolute; top: calc(14.8% + 40px); right: 0; height: 69.9%; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
+  .card-media .sc-t5-mock img { display: block; height: 100%; width: auto; }
+  .sc-t2 .sc-t2-bg { position: absolute; inset: 0; }
+  .sc-t2-mock { position: absolute; top: 120px; right: 60px; bottom: 0; left: 60px; display: flex; align-items: flex-end; }
+  .card-media .sc-t2-mock img { display: block; width: 100%; height: auto; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.35); }
+  .sc-t1 .sc-t1-bg { position: absolute; inset: 0; }
+  .sc-t1-mock { position: absolute; top: calc(14.8% + 40px); right: 0; height: 69.9%; }
+  .card-media .sc-t1-mock img { display: block; height: 100%; width: auto; }
+  @media (prefers-reduced-motion: reduce) {
+    .sc-zoom { transition: none; }
+  }
+
+  /* ---------- SELECTED WORKS: poker hand ("Home - Variant 4") ---------- */
+  .hand-sec { background: var(--card-black); overflow-x: auto; overflow-y: hidden; padding: 60px 0; }
+  .hand { position: relative; width: 100%; max-width: 1280px; aspect-ratio: 1280 / 510; margin: 0 auto; }
+  .hand-card {
+    position: absolute; display: block; cursor: pointer;
+    opacity: 0; transform: translateY(70px) rotate(2deg);
+    transition: opacity .6s ease, transform .75s cubic-bezier(.2,.8,.2,1), filter .3s ease;
+    transition-delay: calc(var(--i) * 90ms), calc(var(--i) * 90ms), 0s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .hand-card img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; }
+  .hand-sec.is-in .hand-card { opacity: 1; transform: none; }
+  .hand-card:focus-visible { outline: none; }
+  .hand-sec.is-in .hand-card:hover, .hand-sec.is-in .hand-card:focus-visible {
+    transform: translateY(-6%); z-index: 10 !important; filter: brightness(1.06);
+    transition-delay: 0s; transition-duration: .25s, .25s, .25s; transition-timing-function: cubic-bezier(.2,.8,.2,1);
+  }
+  @media (max-width: 900px) { .hand { min-width: 860px; } .hand-sec { padding: 40px 0; } }
+  @media (prefers-reduced-motion: reduce) { .hand-card { opacity: 1; transform: none; transition: none; } }
+
+  /* ---------- WORKS (old grid, unused) ---------- */
+  .works {
+    position: relative;
+    isolation: isolate;
+    padding: 70px 0 60px;
+  }
+  /* the #232323 backdrop dissolves in with the scroll: --works-bg (0 -> 1) is driven by how far the section has come up the screen */
+  .works::before {
+    content: "";
+    position: fixed;          /* covers the viewport and stays put: it dissolves in place instead of riding up with the section */
+    inset: 0;
+    z-index: -1;
+    background: #232323;
+    opacity: var(--works-bg, 0);
+  }
+  .works .wrap {
+    max-width: none;
+    padding: 0 80px;
+  }
+  @media (max-width: 440px) { .works .wrap { padding: 0 20px; } }   /* 20px left and right margins on small phones */
+  @media (min-width: 1990px) { .works .wrap { padding: 0 160px; } }   /* 160px left and right margins on large screens (80px below 1990px) */
+
+  .works-header {
+    font-family: 'Alpha Lyrae', 'Alexandria', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 32px;
+    font-size: 36px;
+    font-weight: 500;
+    letter-spacing: -0.48px;
+    -webkit-text-stroke: 0.5px #fff;
+    /* hidden until the user scrolls into Selected Works; hides again back at the top of the page */
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .5s ease, transform .5s ease;
+  }
+  .strip.title-in .works-header { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .works-header { transition: none; }
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    transform-origin: 50% 0;
+    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), filter 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* resting state at the very top of the page (same recipe as jasonyuan.design): shrunk, blurred and oversaturated, and parked so that
+     just the top of the cards peeks in at the bottom of the viewport (--peek-shift is set by script); it settles sharp as soon as the user scrolls */
+  .card-grid.is-pre {
+    transform: translateY(var(--peek-shift, 0px)) scale(0.96);
+    filter: saturate(1.8);  /* no blur, no tint */
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s cubic-bezier(0.16, 1, 0.3, 1);  /* returning to the resting state is quicker than settling out of it */
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card-grid { transition: none; }
+    .card-grid.is-pre { transform: none; filter: none; transition: none; }
+  }
+  .card--wide {
+    grid-column: 1 / -1;
+  }
+  @media (max-width: 900px) {
+    .card-grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: #232323;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.3s ease;
+  }
+  .card:hover,
+  .card:focus-within {
+    background: #333333;
+  }
+
+  .card-media {
+    /* the thumbnail follows the artwork's own proportions (2520x2280) as the card narrows, so the whole mock stays in view instead of being
+       zoomed and cropped; it is capped at the original 570px height, which is what wide desktop cards still use */
+    aspect-ratio: 2520 / 2280;
+    max-height: 570px;
+    overflow: hidden;
+    position: relative;
+    background: #1b1b1b;
+  }
+  /* screens 1990px wide and up: the mock stops growing. It keeps exactly the size and spacing it has at 1990px (artwork 905px wide, centred, cropped by the card's
+     570px height as before), so the margins around it never increase. The rest of the card is the artwork's background image stretched to fill it, the same way
+     the case study hero backgrounds are stretched, with the mock (its own transparent layer) on top. Card heights are untouched; the wide card has no mock and is left alone. */
+  @media (min-width: 1990px) {
+    /* one layer holds both the stretched background and the mock, so the hover zoom moves them together, exactly like the single artwork image does below 1990px */
+    .card-media[style*="--bg"] .sc-zoom {
+      inset: 0;
+      background: var(--mock) var(--mock-pos, 50% 50%) / var(--mock-size, min(905px, 100%) auto) no-repeat, var(--bg) center / 100% 100% no-repeat;
+      transform-origin: 50% 0;
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .card-media[style*="--bg"] .sc-zoom > img { display: none; }
+    .card:hover .card-media[style*="--bg"] .sc-zoom,
+    .card:focus-within .card-media[style*="--bg"] .sc-zoom { transform: scale(1.03) translateY(-2.5%); }
+  }
+  .card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transform-origin: 50% 0;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .card:hover .card-media img,
+  .card:focus-within .card-media img {
+    transform: scale(1.03) translateY(-2.5%);
+  }
+
+  .card-media--stage { container-type: inline-size; }
+  .card-media--stage .stage-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: none;
+  }
+  .stage {
+    position: absolute;
+    left: 9cqw;
+    right: 9cqw;
+    top: 9cqw;
+    bottom: 0;
+    overflow: hidden;
+    container-type: inline-size;
+    transform-origin: 50% 0;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .card-media--stage .stage img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: initial;
+    transform: none !important;
+    transition: none;
+  }
+  .card:hover .card-media--stage .stage,
+  .card:focus-within .card-media--stage .stage {
+    transform: scale(1.03) translateY(-2%);
+  }
+  .card:hover .card-media--stage .stage-bg,
+  .card:focus-within .card-media--stage .stage-bg { transform: none; }
+  .stage.stage--duo { overflow: visible; }
+  .stage--duo .duo-a {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 77.1cqw;
+    border-radius: 5px;
+  }
+  .stage--duo .duo-b {
+    position: absolute;
+    left: 59cqw;
+    width: 44.9cqw;
+    top: 16.9cqw;
+    bottom: 0;
+    overflow: hidden;
+    border-radius: 5px 5px 0 0;
+  }
+
+  .card-body {
+    padding: 24px;
+  }
+  @media (max-width: 440px) {
+    .card-body { padding: 24px 0; }   /* title and description flush left, tags flush right, no side padding on small phones */
+    .card-top { justify-content: space-between; }
+    .tags { justify-content: flex-end; }
+  }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 8px;
+  }
+  .card-title {
+    font-family: 'Alpha Lyrae', 'Alexandria', sans-serif;
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: 0;
+    -webkit-text-stroke: 0.5px #fff;
+    margin: 0;
+    min-width: 0;                                 /* lets the title wrap/shrink instead of pushing the tags out */
+  }
+
+  .card-link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .card-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  .card-link:focus-visible { outline: none; }
+  .card:has(.card-link) { cursor: pointer; }
+
+  .ghost {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    text-align: left;
+    gap: 14px;
+    min-height: 220px;
+    padding: 28px;
+    border: 2px dashed #3a3a3a;
+    border-radius: 6px;
+    background: repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 10px, transparent 10px 20px);
+    color: #fff;
+    text-decoration: none;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+  }
+  .ghost[hidden] { display: none; }
+  .ghost:hover,
+  .ghost:focus-visible {
+    border-color: #35b5ff;
+    background-color: rgba(53, 181, 255, 0.05);
+    outline: none;
+  }
+  .ghost-text {
+    margin: 0;
+    max-width: 22ch;
+    text-wrap: balance;
+    font-family: 'Alpha Lyrae', 'Alexandria', sans-serif;
+    font-weight: 500;
+    font-size: 26px;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+  .ghost-smile {
+    display: inline-block;
+    color: #35b5ff;
+    transform-origin: 30% 60%;
+    animation: ghost-wiggle 2.4s ease-in-out infinite;
+  }
+  .ghost-cta {
+    font-size: 12px;
+    color: var(--muted);
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+  .ghost:hover .ghost-cta,
+  .ghost:focus-visible .ghost-cta {
+    color: #35b5ff;
+    transform: translateX(4px);
+  }
+  @keyframes ghost-wiggle {
+    0%, 60%, 100% { transform: rotate(0deg); }
+    68% { transform: rotate(-10deg) translateY(-2px); }
+    76% { transform: rotate(8deg); }
+    84% { transform: rotate(-6deg); }
+    92% { transform: rotate(3deg); }
+  }
+  @media (prefers-reduced-motion: reduce) { .ghost-smile { animation: none; } }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 0 0 14px;
+  }
+  .card-desc b { font-weight: 700; color: #fff; }
+
+  .tags {
+    flex: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    max-width: 55%;
+  }
+  .tag {
+    background: var(--pill-grey);
+    color: #fff;
+    font-size: 10px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+
+  /* ---------- FOOTER ---------- */
+  .footer {
+    position: relative;
+    z-index: 5;
+    background: #232323;
+    border-top: 1px solid var(--pill-grey);
+    padding: 72px 0;
+  }
+  .footer .wrap {
+    max-width: none;
+    padding: 0 80px;
+  }
+
+  .footer-rule {
+    height: 1px;
+    background: var(--line-grey);
+    margin-bottom: 34px;
+  }
+
+  .footer-grid {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 32px;
+  }
+  .contact-block {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .contact-clock-group {
+    margin-top: auto;
+    transform: translateY(-6px);
+  }
+
+  .contact-title {
+    font-family: 'Alpha Lyrae', 'Alexandria', sans-serif;
+    font-weight: 500;
+    font-size: 24px;
+    letter-spacing: -0.4px;
+    margin: 0 0 14px;
+    -webkit-text-stroke: 0.2px #fff;
+  }
+  .contact-title em {
+    font-family: 'Italiana', 'Alpha Lyrae', serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 26px;
+    -webkit-text-stroke: 0.2px #fff;
+  }
+  .contact-rule {
+    width: 28px;
+    height: 4px;
+    border-radius: 10px;
+    background: var(--accent-line);
+    margin-bottom: 14px;
+  }
+  .footer-clock {
+    font-family: 'Alpha Lyrae', 'Alexandria', sans-serif;
+    font-size: 20px;
+    margin: 0;
+  }
+  .footer-cols {
+    display: flex;
+    gap: 60px;
+    flex-wrap: wrap;
+    margin-right: 96px;       /* sits 96px in from the right edge on wide screens (replaces the old translateX nudge, which pushed the columns off-screen when the row wrapped) */
+  }
+  .footer-col label {
+    display: block;
+    font-size: 14px;
+    opacity: 0.5;
+    letter-spacing: -0.24px;
+    margin-bottom: 8px;
+  }
+  .footer-col .value {
+    font-family: 'Alpha Lyrae', 'Alexandria', sans-serif;
+    font-size: 20px;
+    letter-spacing: -0.32px;
+  }
+  .footer-col .value a {
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .footer-col .value a:hover,
+  .footer-col .value a:focus-visible {
+    color: #35b5ff;
+  }
+  /* the phone number is a tap-to-call link on phones and tablets (the system asks Call / Cancel); with a mouse it stays plain text */
+  @media (hover: hover) and (pointer: fine) {
+    .footer-col .value a.tel, .footer-col .value a.tel:hover { color: inherit; cursor: text; }
+  }
+  .footer-col + .footer-col {
+    margin-top: 26px;
+  }
+  .footer-cols-group {
+    display: flex;
+    flex-direction: column;
+  }
+  .footer-credit {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    margin: 0;
+    z-index: 2;
+    font-family: 'Alpha Lyrae', 'Alexandria', sans-serif;
+    font-size: 12px;
+    color: #6e6e6e;
+    opacity: 0.5;
+    letter-spacing: -0.24px;
+    white-space: nowrap;
+  }
+
+
+  @media (max-width: 760px) {
+    .card-grid { grid-template-columns: 1fr; }
+    .hero { padding: 60px 0 40px; min-height: unset; }
+    .wrap { padding: 0 24px; }
+    .footer-grid { flex-direction: column; }
+  }
+
+  /* hero on small screens: the absolutely placed eyebrow / headline / bio would be clipped by the collapsed hero, so below 900px they flow
+     in a column instead, keeping the same 80px left margin as the rest of the page (40px on small phones) */
+  @media (max-width: 900px) {
+    .hero { min-height: 100vh; min-height: 100svh; padding: 110px 0 70px; }
+    .hero .wrap.hero-inner { padding: 0 100px; flex-direction: column; align-items: flex-start; gap: 36px; }
+    .eyebrow, .headline, .bio { position: static; }
+    .eyebrow { margin: 0 0 14px; font-size: 20px; }
+    .headline { font-size: clamp(28px, 8vw, 56px); max-width: none; }
+    .bio { width: auto; max-width: 308px; }
+  }
+  @media (max-width: 440px) { .hero .wrap.hero-inner { padding: 0 40px; } }
+  /* phones: the hero text block sits 8px higher (the text is centred in the hero, so 8px less above and 8px more below moves it up 8px) */
+  @media (max-width: 440px) { .hero { padding: 102px 0 78px; } }
+
+  /* footer responsiveness: stack the contact block above the details once the two-column row no longer fits, then stack the details too on phones */
+  @media (max-width: 1240px) {
+    .footer-grid { flex-direction: column; gap: 40px; }
+    .footer-cols { margin-right: 0; gap: 32px 60px; }
+    .contact-clock-group { margin-top: 0; transform: none; }
+  }
+  @media (max-width: 760px) {
+    .footer { padding: 56px 0; }
+    .footer .wrap { padding: 0 24px 0 80px; }   /* left edge stays at 80px, in line with the hero text and the cards */
+    .footer-cols { flex-direction: column; gap: 28px; width: 100%; }
+    .footer-cols-group { width: 100%; }
+    .footer-col .value { font-size: 18px; overflow-wrap: anywhere; }
+    .contact-title { font-size: 22px; }
+    .contact-title em { font-size: 24px; }
+  }
+  @media (max-width: 440px) {
+    .footer .wrap { padding: 0 24px 0 40px; }   /* tighter left margin on small phones */
+  }
+  
+  /* no hover states on phones (440px and below) or on any touch-only device, where a tap would otherwise leave the hover look stuck on */
+  @media (max-width: 440px), (hover: none) {
+    .card:hover, .card:focus-within { background: #232323; }
+    .card:hover .card-media img, .card:focus-within .card-media img { transform: none; }
+    .footer-col .value a:hover, .footer-col .value a:focus-visible { color: #fff; }
+
+    /* tapping a card: one single grey layer covers the card and bleeds 20px past it on every side. isolation makes the card its own stacking
+       context, so the layer (z-index -1) sits above the card's own background (no second, differently-toned grey) and below its content. */
+    .card { overflow: visible; isolation: isolate; -webkit-tap-highlight-color: transparent; }
+    .card-link { -webkit-tap-highlight-color: transparent; }
+    .card::before {
+      content: ""; position: absolute; inset: -20px; z-index: -1; pointer-events: none;
+      background: #333333; opacity: 0; transition: opacity 0.15s ease;
+    }
+    .card:active::before { opacity: 1; }
+  }
+
+  /* phones: the card has no background of its own (the text sits straight on the Selected Works backdrop), so there is no grey box around the
+     title and description while the page scrolls and the backdrop is still fading in */
+  @media (max-width: 440px) {
+    .card, .card:hover, .card:focus-within { background: transparent; }
+  }
+
+  /* phones: while the page sits at the top (the cards only peek in, .is-pre) the pictures keep the 20px side margins; as soon as the user scrolls into
+     Selected Works each card's picture runs edge to edge (the page margin is cancelled for the picture only; the text below keeps it). The artwork's
+     background is its own image stretched across the full width, with the mock on top at the size it has inside the margins. */
+  @media (max-width: 440px) {
+    .card-media { aspect-ratio: auto; height: calc((100vw - 40px) * 2280 / 2520); transition: margin 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .card-grid:not(.is-pre) .card-media { margin-left: -20px; margin-right: -20px; transition-duration: 1.2s; }
+    .card-media[style*="--bg"] .sc-zoom {
+      background: var(--mock) 50% 50% / calc(100vw - 40px) calc((100vw - 40px) * 2280 / 2520) no-repeat, var(--bg) center / 100% 100% no-repeat;
+    }
+    .card-media[style*="--bg"] .sc-zoom > img { display: none; }
+  }
+
+  /* ---------- LOADER (Figma frames Loading 0-6) ---------- */
+  body.is-loading { overflow: hidden; }
+  .loader {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #232323;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .loader.is-done { opacity: 0; pointer-events: none; }
+  .loader-line {
+    position: relative;
+    width: min(520px, calc(100vw - 48px));
+    height: 1px;
+    background: #d9d9d9;
+  }
+  .loader-mask {
+    position: absolute;
+    inset: -2px auto -2px -1px;   /* bleeds 1-2px past the line on every side so no anti-aliased edge of the line is left showing at odd viewport sizes */
+    width: 1px;
+    background: #232323;
+    animation: loader-wipe 1.6s cubic-bezier(0.65, 0, 0.35, 1) 0.15s forwards;
+    will-change: width;
+  }
+  .loader-welcome {
+    position: absolute;
+    margin: 0;
+    font-family: 'Alpha Lyrae', 'Alexandria', sans-serif;
+    font-weight: 500;
+    font-size: 24px;
+    letter-spacing: 0;                          /* any non-zero spacing disables the font's own glitch letter alternates */
+    color: #fff;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(6px);
+    animation: loader-welcome-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.35s forwards;
+  }
+  @media (max-width: 440px) { .loader-line { width: calc(100vw - 80px); } }   /* 40px left and right margins on small phones */
+  @keyframes loader-wipe { from { width: 1px; } to { width: calc(100% + 2px); } }
+  @keyframes loader-welcome-in { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) {
+    .loader-mask { animation-duration: 0.01s; animation-delay: 0s; }
+    .loader-welcome { animation-delay: 0.05s; animation-duration: 0.01s; }
+  }
+</style>
+<noscript><style>.loader { display: none; }</style></noscript>
+</head>
+<body class="is-loading">
+
+  <!-- defined up front so the loader's glitching "Welcome!" (below) can reference it on first paint -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <filter id="warp-filter" x="-15%" y="-40%" width="130%" height="180%" color-interpolation-filters="sRGB">
+      <feTurbulence id="warp-turb" type="fractalNoise" baseFrequency="0.011 0.09" numOctaves="2" seed="17" result="n"/>
+      <feDisplacementMap id="warp-map" in="SourceGraphic" in2="n" scale="22" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
+
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader-line"><div class="loader-mask"></div></div>
+    <p class="loader-welcome">Welcome!</p>
+  </div>
+  <script>
+    try {
+      var nav = performance.getEntriesByType('navigation')[0];
+      var cameBack = (nav && nav.type === 'back_forward') || /case-study/.test(document.referrer);
+      if (cameBack) {
+        document.getElementById('loader').remove();
+        document.body.classList.remove('is-loading');
+      }
+    } catch (e) {}
+  </script>
+
+  <!-- HERO -->
+  <section class="hero">
+    <canvas id="hero-gradient" class="hero-gradient-canvas"></canvas>
+    <p class="footer-credit">Site designed and coded by Chris :D</p>
+    <div class="wrap hero-inner">
+      <div>
+        <p class="eyebrow">I'm <b>Chris</b> - Design Engineer</p>
+        <h1 class="headline" aria-label="Turning complexity into harmony"><span class="hl" aria-hidden="true"><img class="glitch-word" src="assets/turning.svg" alt="" width="237" height="63"> <span class="warp is-glitching" data-text="complexity">complexity</span></span><span class="hl hl-into" aria-hidden="true">complexity into <em>harmony</em></span></h1>
+      </div>
+      <div class="bio">
+        <div class="rule"></div>
+        <p>Bay Area based. Designing for 8+ years. I enjoy solving problems, creating solutions, researching, and leading.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SELECTED WORKS: 2-column grid, full width with 40px side margins, 16px gap, 362px-tall media -->
+  <!-- .strip-pin adds extra scroll room (JS-measured, equal to the footer's height); harmless no-op now that .strip isn't sticky -->
+  <div class="strip-pin" id="strip-pin">
+  <section class="strip works" id="works" aria-label="Selected works">
+    <div class="wrap">
+      <div class="card-grid is-pre">
+        <article class="card">
+          <div class="card-media" style="--bg:url(assets/strip/card1-bg.jpg);--mock:url(assets/strip/card1-mock.png);--mock-size:min(827.2px, 100%) auto;--mock-pos:50% -89.7px"><span class="sc-zoom"><img src="assets/strip/tile1-v7.png" alt="" draggable="false"></span></div>
+          <div class="card-body">
+            <div class="card-top">
+              <h3 class="card-title"><a class="card-link" href="case-study-1.html">Trending Categories</a></h3>
+              <div class="tags">
+                <span class="tag">Mobile</span>
+                <span class="tag">AI</span>
+                <span class="tag">Research</span>
+                <span class="tag">0 → 1</span>
+              </div>
+            </div>
+            <p class="card-desc">Doubled mobile app DAU/MAU from 20% to <b>40%</b></p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-media" style="--bg:url(assets/strip/card2-bg.jpg);--mock:url(assets/strip/card2-mock.png)"><span class="sc-zoom"><img src="assets/strip/tile2-v8.jpg" alt="" draggable="false"></span></div>
+          <div class="card-body">
+            <div class="card-top">
+              <h3 class="card-title"><a class="card-link" href="case-study-2.html">Chain Data Transformations</a></h3>
+              <div class="tags">
+                <span class="tag">Web</span>
+                <span class="tag">Integrations</span>
+                <span class="tag">Complexity</span>
+              </div>
+            </div>
+            <p class="card-desc">Users <b>saved 72 hours</b> from completing the task</p>
+          </div>
+        </article>
+
+        <article class="card card--wide">
+          <div class="card-media"><span class="sc-zoom"><img src="assets/strip/tile4-v5.png" alt="" draggable="false"></span></div>
+          <div class="card-body">
+            <div class="card-top">
+              <h3 class="card-title"><a class="card-link" href="case-study-4.html">AI Personas</a></h3>
+              <div class="tags">
+                <span class="tag">AI</span>
+                <span class="tag">Internal Tools</span>
+                <span class="tag">Design &amp; Product Ops</span>
+              </div>
+            </div>
+            <p class="card-desc">Internal knowledge base tool enabling teams to ideate faster and with confidence</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-media" style="--bg:url(assets/strip/card3-bg.jpg);--mock:url(assets/strip/card3-mock.png)"><span class="sc-zoom"><img src="assets/strip/tile2-v5.png" alt="" draggable="false"></span></div>
+          <div class="card-body">
+            <div class="card-top">
+              <h3 class="card-title"><a class="card-link" href="case-study-3.html">Home Page Redesign</a></h3>
+              <div class="tags">
+                <span class="tag">Web</span>
+                <span class="tag">AI</span>
+                <span class="tag">Research</span>
+                <span class="tag">Data Viz</span>
+              </div>
+            </div>
+            <p class="card-desc">Enabling users to have a more effective start to their daily workflows.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-media" style="--bg:url(assets/strip/card5-bg.jpg);--mock:url(assets/strip/card5-mock.png)"><span class="sc-zoom"><img src="assets/strip/tile5-v3.png" alt="" draggable="false"></span></div>
+          <div class="card-body">
+            <div class="card-top">
+              <h3 class="card-title"><a class="card-link" href="case-study-5.html">Social Queues</a></h3>
+              <div class="tags">
+                <span class="tag">Web</span>
+                <span class="tag">Social</span>
+                <span class="tag">Scalability</span>
+              </div>
+            </div>
+            <p class="card-desc">Simplified complex enterprise social publishing across thousands of locations</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer" id="footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="contact-block">
+          <p class="contact-title">Let's build <em>harmonic solutions</em></p>
+          <div class="contact-clock-group">
+            <div class="contact-rule"></div>
+            <p class="footer-clock" id="clock">Bay Area, US</p>
+          </div>
+        </div>
+
+        <div class="footer-cols">
+          <div class="footer-cols-group">
+            <div class="footer-col">
+              <label>Email</label>
+              <div class="value"><a href="mailto:chrislapenadesign@gmail.com?subject=Let%E2%80%99s%20work%20together">chrislapenadesign@gmail.com</a></div>
+            </div>
+            <div class="footer-col">
+              <label>Phone</label>
+              <div class="value"><a class="tel" href="tel:+19253367548">925-336-7548</a></div>
+            </div>
+          </div>
+          <div class="footer-cols-group">
+            <div class="footer-col">
+              <label>Linkedin</label>
+              <div class="value"><a href="https://www.linkedin.com/in/chrislapena/" target="_blank" rel="noopener">www.linkedin.com/in/chrislapena</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+<script>
+  (function () {
+    var loader = document.getElementById('loader');
+    if (!loader) return;
+    var welcome = loader.querySelector('.loader-welcome');
+    var welcomeShown = false, pageLoaded = false;
+    function finish() {
+      if (!welcomeShown || !pageLoaded) return;
+      setTimeout(function () {
+        loader.classList.add('is-done');
+        document.body.classList.remove('is-loading');
+        setTimeout(function () { loader.remove(); }, 900);
+      }, 500);
+    }
+    welcome.addEventListener('animationend', function () { welcomeShown = true; finish(); });
+    if (document.readyState === 'complete') { pageLoaded = true; }
+    else { window.addEventListener('load', function () { pageLoaded = true; finish(); }); }
+    finish();
+  })();
+</script>
+<script>
+  // hero-snap: one snap, hero <-> Selected Works, with very little scroll effort. Works is a full-screen black panel, so when you
+  // land there the NEAT hero and the contact info are out of view. Everything below works scrolls normally.
+  // Scroll input is never ignored: every new flick / swipe / key press takes effect immediately, even in the middle of a glide.
+  (function () {
+    var strip = document.querySelector('.strip');
+    if (!strip) return;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var raf = null;
+
+    function docTop(el) { return Math.round(el.getBoundingClientRect().top + window.pageYOffset); }
+    // just the one snap pair: the top of the NEAT hero and the top of the Selected Works panel. Once the user has
+    // scrolled into Works, further downward scrolling is normal (no more snapping past it).
+    function anchors() { return [0, docTop(strip)]; }
+    function active() { return !document.body.classList.contains('is-loading'); }
+
+    // Buttery snap glide: the same easing curve Lenis uses (fast start, long soft landing), ~1.1s. Frame-time based, so it stays
+    // smooth on 60 / 120Hz screens; a new gesture simply starts a new glide from wherever the page is.
+    var dest = null;                                  // where the running glide is heading (null = idle)
+    function easeOutExpo(p) { return p >= 1 ? 1 : Math.min(1, 1.001 - Math.pow(2, -10 * p)); }
+    function glide(to) {
+      cancelAnimationFrame(raf);
+      dest = to;
+      var from = window.pageYOffset, dist = to - from;
+      if (reduce || Math.abs(dist) < 2) { window.scrollTo(0, to); dest = null; return; }
+      var dur = Math.min(1300, 850 + Math.abs(dist) * 0.3), t0 = null;
+      (function frame(t) {
+        if (t0 === null) t0 = t;
+        var p = Math.min(1, (t - t0) / dur);
+        window.scrollTo(0, from + dist * easeOutExpo(p));
+        if (p < 1) raf = requestAnimationFrame(frame); else { window.scrollTo(0, to); dest = null; }
+      })(performance.now());
+    }
+    // where would a snap in this direction go? (relative to the page position, or to the glide's destination if one is running,
+    // so quick successive flicks keep moving section by section)
+    function step(dir) {
+      if (!active()) return false;
+      var y = dest !== null ? dest : window.pageYOffset, list = anchors(), to = null;
+      if (dir > 0) { if (y < list[1] - 8) to = list[1]; }             // on the hero, scrolling down -> works
+      else { if (y > 8 && y <= list[1] + 8) to = 0; }                 // at (or above) the works top, scrolling up -> hero
+                                                                       // anywhere past works: normal scrolling, no more snapping
+      if (to === null) return false;
+      glide(to); return true;
+    }
+
+    // "Selected Works" title: reveal once the user has scrolled/snapped into the section, hide again back at the top
+    var titleRaf = null;
+    function checkTitle() {
+      titleRaf = null;
+      strip.classList.toggle('title-in', window.pageYOffset >= docTop(strip) - 4);
+    }
+    function onScrollTitle() { if (titleRaf == null) titleRaf = requestAnimationFrame(checkTitle); }
+    window.addEventListener('scroll', onScrollTitle, { passive: true });
+    window.addEventListener('resize', onScrollTitle);
+    checkTitle();
+
+    // scroll-linked backdrop: starts dissolving in as Works comes up the screen (top at 80% of the viewport), solid at the top;
+    // runs backwards on the way out and follows the snap glide frame by frame
+    function checkBg() {
+      var p = 1 - strip.getBoundingClientRect().top / (window.innerHeight * 0.8);
+      strip.style.setProperty("--works-bg", Math.max(0, Math.min(1, p)).toFixed(3));
+    }
+    window.addEventListener("scroll", checkBg, { passive: true });
+    window.addEventListener("resize", checkBg);
+    checkBg();
+
+    // cards: blurred / shrunk while the page sits at the very top, with PEEK px of them showing at the bottom of the screen;
+    // they settle sharp the moment the user scrolls (the hero -> Works snap starts), and blur again if the user returns to the top
+    var PEEK_DESKTOP = 88, PEEK_MOBILE = 44;                 // px of the first cards showing at the bottom of the screen; half as much on phones (440px wide and under)
+    var cardGrid = document.querySelector('.card-grid');
+    var gridWrap = cardGrid && cardGrid.parentElement;       // the grid is the wrap's first child, so wrap top == untransformed grid top
+    function placePeek() {
+      if (!cardGrid) return;
+      var PEEK = window.matchMedia('(max-width: 440px)').matches ? PEEK_MOBILE : PEEK_DESKTOP;
+      var gridDocTop = gridWrap.getBoundingClientRect().top + window.pageYOffset;
+      cardGrid.style.setProperty('--peek-shift', Math.round(window.innerHeight - PEEK - gridDocTop) + 'px');
+    }
+    function checkCards() { if (cardGrid) cardGrid.classList.toggle("is-pre", (dest !== null ? dest : window.pageYOffset) <= 2); }  // a glide up to the top counts as already there, so the cards start returning the moment the snap begins
+    window.addEventListener('scroll', checkCards, { passive: true });
+    window.addEventListener('resize', placePeek);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(placePeek);
+    placePeek(); checkCards();
+
+    // wheel / trackpad: one flick = one snap. Every wheel event that follows within 160ms of the previous one belongs to the same
+    // flick (trackpad momentum keeps firing events for a second or more) and is swallowed, so a single swipe can never carry the
+    // page past the next section. A new flick (a pause in the events) is honoured immediately, even mid-glide.
+    // Trackpads start a flick with tiny deltas (1, 2, 3 ... px) that ramp up, so the decision is made on the flick's TOTAL travel
+    // (a few px), not on its very first event.
+    var lastT = 0, swallow = false, handled = false, gestureSum = 0;
+    window.addEventListener('wheel', function (e) {
+      var now = performance.now(), fresh = now - lastT > 160;
+      lastT = now;
+      if (e.ctrlKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;   // pinch-zoom or a sideways swipe
+      if (fresh) { swallow = false; handled = false; gestureSum = 0; cancelAnimationFrame(raf); dest = null; }
+      if (!handled) {
+        // (a new flick in the opposite direction restarts the count)
+        if (gestureSum && (gestureSum > 0) !== (e.deltaY > 0)) gestureSum = 0;
+        gestureSum += e.deltaY;
+        if (Math.abs(gestureSum) >= 4) {
+          handled = true;
+          if (step(gestureSum > 0 ? 1 : -1)) swallow = true;
+        }
+      }
+      if (swallow) e.preventDefault();                                     // the rest of this flick (momentum) must not move the page
+    }, { passive: false });
+
+    var touchY = null, touchSnapped = false;
+    window.addEventListener('touchstart', function (e) { touchY = e.touches.length === 1 ? e.touches[0].clientY : null; touchSnapped = false; }, { passive: true });
+    window.addEventListener('touchmove', function (e) {
+      if (touchY === null) return;
+      if (touchSnapped) { if (e.cancelable) e.preventDefault(); return; }
+      var dy = touchY - e.touches[0].clientY;                         // > 0 = swiping up = scrolling down
+      if (Math.abs(dy) > 14 && e.cancelable) {
+        if (step(dy > 0 ? 1 : -1)) { e.preventDefault(); touchSnapped = true; } else { cancelAnimationFrame(raf); dest = null; }
+      }
+    }, { passive: false });
+
+    window.addEventListener('keydown', function (e) {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      var t = e.target && e.target.tagName;
+      if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT' || (e.target && e.target.isContentEditable)) return;
+      if (e.target && e.target.closest && e.target.closest('[role="scrollbar"]')) return;
+      var dir = (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ' || e.key === 'Spacebar') ? 1 : (e.key === 'ArrowUp' || e.key === 'PageUp') ? -1 : 0;
+      if (dir && step(dir)) e.preventDefault();
+    });
+  })();
+</script>
+<script>
+  // tap-to-call: on touch devices the tel: link opens the system's Call / Cancel prompt; with a mouse a click does nothing (the number stays selectable text)
+  (function () {
+    var tel = document.querySelector('a.tel');
+    if (!tel || !window.matchMedia) return;
+    var mouse = window.matchMedia('(hover: hover) and (pointer: fine)');
+    tel.addEventListener('click', function (e) { if (mouse.matches) e.preventDefault(); });
+  })();
+</script>
+
+<script>
+  // Footer scrolls up and over the sticky Selected Works panel: the pin wrapper gets extra scroll room, and the
+  // footer is pulled up by that same amount, both equal to the footer's own rendered height — so the cover
+  // finishes exactly as the panel unsticks, however tall the footer ends up being.
+  (function () {
+    var pin = document.getElementById('strip-pin');
+    var footer = document.getElementById('footer');
+    if (!pin || !footer) return;
+    function sync() {
+      var h = footer.getBoundingClientRect().height;
+      pin.style.paddingBottom = h + 'px';
+      footer.style.marginTop = -h + 'px';
+    }
+    sync();
+    window.addEventListener('resize', sync);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(sync);
+
+  })();
+</script>
+
+
+
+<script>
+  // Selected-works strip: cards ease into frame the first time it scrolls into view; the custom scrollbar under it is
+  // inset to the same side margins as the cards and stays in sync with the row.
+  (function () {
+    var strip = document.querySelector('.strip');
+    if (!strip) return;
+    if ('IntersectionObserver' in window) {
+      // cards (images) ease in as soon as the section starts peeking into view from the hero
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { if (e.isIntersecting) { strip.classList.add('is-in'); io.disconnect(); } });
+      }, { threshold: 0.2 });
+      io.observe(strip);
+      // the title band (text + its background) stays hidden until the section is fully scrolled into view, and hides
+      // again on the way back out — driven by a scroll listener rather than IntersectionObserver, since an instant
+      // snap can land a pixel or two short of an exact 1.0 ratio and never actually "cross" that threshold
+      var fullRaf = null;
+      function checkFull() {
+        fullRaf = null;
+        var r = strip.getBoundingClientRect();
+        strip.classList.toggle('is-full', r.top >= -2 && r.bottom <= window.innerHeight + 2);
+      }
+      function onScrollFull() { if (fullRaf == null) fullRaf = requestAnimationFrame(checkFull); }
+      window.addEventListener('scroll', onScrollFull, { passive: true });
+      window.addEventListener('resize', onScrollFull);
+      checkFull();
+    } else { strip.classList.add('is-in'); strip.classList.add('is-full'); }
+
+    var view = document.getElementById('strip-view');
+    var bar = document.getElementById('strip-bar');
+    var thumb = bar && bar.querySelector('.strip-thumb');
+    if (!view || !bar || !thumb) return;
+
+    function metrics() {
+      var sw = view.scrollWidth, cw = view.clientWidth, tw = bar.clientWidth;
+      var tW = Math.max(48, tw * cw / sw);
+      return { sw: sw, cw: cw, tw: tw, tW: tW, max: sw - cw, travel: tw - tW };
+    }
+    function update() {
+      var m = metrics();
+      if (m.max <= 1) { bar.hidden = true; return; }
+      bar.hidden = false;
+      m = metrics();
+      thumb.style.width = m.tW + 'px';
+      thumb.style.transform = 'translateX(' + (m.travel * view.scrollLeft / m.max).toFixed(1) + 'px)';
+      bar.setAttribute('aria-valuenow', Math.round(100 * view.scrollLeft / m.max));
+    }
+    // show the bar while the row is moving, hide it ~1s after it stops (it stays up while hovered, focused or dragged)
+    var hideTimer = null;
+    function reveal() {
+      bar.classList.add('is-active');
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(function () {
+        if (!thumb.classList.contains('is-dragging')) bar.classList.remove('is-active');
+      }, 1000);
+    }
+    view.addEventListener('scroll', function () { update(); reveal(); }, { passive: true });
+    window.addEventListener('resize', update);
+    window.addEventListener('load', update);
+    update();
+
+    // drag the row with the mouse (touch already scrolls natively)
+    var dStartX = 0, dStartLeft = 0, dDown = false, dMoved = 0;
+    view.addEventListener('pointerdown', function (e) {
+      if (e.pointerType !== 'mouse' || e.button !== 0) return;
+      dDown = true; dMoved = 0; dStartX = e.clientX; dStartLeft = view.scrollLeft;
+    });
+    window.addEventListener('pointermove', function (e) {
+      if (!dDown) return;
+      var dx = e.clientX - dStartX;
+      if (!view.classList.contains('is-dragging')) { if (Math.abs(dx) < 5) return; view.classList.add('is-dragging'); }
+      dMoved = Math.max(dMoved, Math.abs(dx));
+      view.scrollLeft = dStartLeft - dx;
+    });
+    window.addEventListener('pointerup', function () { dDown = false; view.classList.remove('is-dragging'); });
+    window.addEventListener('pointercancel', function () { dDown = false; view.classList.remove('is-dragging'); });
+    view.addEventListener('click', function (e) { if (dMoved > 5) { e.preventDefault(); e.stopPropagation(); dMoved = 0; } }, true);
+    view.addEventListener('dragstart', function (e) { e.preventDefault(); });
+
+    // drag the thumb
+    var startX = 0, startLeft = 0;
+    thumb.addEventListener('pointerdown', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      startX = e.clientX; startLeft = view.scrollLeft;
+      thumb.classList.add('is-dragging');
+      try { thumb.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    thumb.addEventListener('pointermove', function (e) {
+      if (!thumb.classList.contains('is-dragging')) return;
+      var m = metrics();
+      if (m.travel > 0) view.scrollLeft = startLeft + (e.clientX - startX) * (m.max / m.travel);
+    });
+    function endDrag(e) { thumb.classList.remove('is-dragging'); try { thumb.releasePointerCapture(e.pointerId); } catch (err) {} reveal(); }
+    thumb.addEventListener('pointerup', endDrag);
+    thumb.addEventListener('pointercancel', endDrag);
+    // click the track: jump there
+    bar.addEventListener('pointerdown', function (e) {
+      if (e.target === thumb) return;
+      var m = metrics(), r = bar.getBoundingClientRect();
+      var frac = Math.min(1, Math.max(0, (e.clientX - r.left - m.tW / 2) / m.travel));
+      view.scrollTo({ left: frac * m.max, behavior: 'smooth' });
+    });
+    // keyboard
+    bar.addEventListener('keydown', function (e) {
+      var step = 160;
+      if (e.key === 'ArrowRight') { view.scrollBy({ left: step, behavior: 'smooth' }); e.preventDefault(); }
+      else if (e.key === 'ArrowLeft') { view.scrollBy({ left: -step, behavior: 'smooth' }); e.preventDefault(); }
+      else if (e.key === 'Home') { view.scrollTo({ left: 0, behavior: 'smooth' }); e.preventDefault(); }
+      else if (e.key === 'End') { view.scrollTo({ left: view.scrollWidth, behavior: 'smooth' }); e.preventDefault(); }
+    });
+  })();
+</script>
+
+
+
+<script>
+  (function () {
+    var grid = document.querySelector(".card-grid");
+    var ghost = document.getElementById("ghost");
+    if (!grid || !ghost) return;
+    function fit() {
+      var cols = getComputedStyle(grid).gridTemplateColumns.split(" ").length;
+      var n = grid.querySelectorAll(".card").length;
+      var empty = (cols - (n % cols)) % cols;
+      ghost.hidden = empty === 0;
+      if (empty) ghost.style.gridColumn = "span " + empty;
+    }
+    fit();
+    window.addEventListener("resize", fit);
+  })();
+</script>
+<!-- "complexity" is permanently glitched (static): the .is-glitching state + SVG displacement filter above, no animation -->
+<script>
+  // Live Bay Area (Pacific) clock, mirroring the "Bay Area, US 1:11 PM" detail in the design
+  function updateClock() {
+    const el = document.getElementById('clock');
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+    el.textContent = `Bay Area, US ${formatter.format(now)}`;
+  }
+  updateClock();
+  setInterval(updateClock, 30000);
+  // iOS Safari only applies :active (the card press state) when some touch listener exists on the page
+  document.addEventListener('touchstart', function () {}, { passive: true });
+</script>
+
+
+<!-- Background theme for the home page: 'ps2' (Three.js drifting blocks, below) or 'neat' (the NEAT gradient). Change this one word to switch. -->
+<script>window.BG_THEME = 'ps2';</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- NEAT gradient library (FireCMS, MIT + Commons Clause), self-hosted, no external CDN -->
+<script src="assets/neat.js"></script>
+<script>
+  // "Fluid" preset from https://neat.firecms.co/
+  (function() {
+    var canvas = document.getElementById('hero-gradient');
+    if (window.BG_THEME !== 'neat' || !canvas || typeof neat === 'undefined' || typeof neat.NeatGradient === 'undefined') return;
+
+    var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var config = {
+    colors: [
+      { color: '#35B5FF', enabled: true },
+      { color: '#08232C', enabled: true },
+      { color: '#259490', enabled: true },
+      { color: '#183C60', enabled: true },
+      { color: '#0C1E31', enabled: true },
+      { color: '#232323', enabled: true }
+    ],
+    speed: 1,
+    horizontalPressure: 3,
+    verticalPressure: 3,
+    waveFrequencyX: 3,
+    waveFrequencyY: 5,
+    waveAmplitude: 10,
+    secondaryWaveEnabled: false,
+    secondaryWaveFrequencyX: 3,
+    secondaryWaveFrequencyY: 3,
+    secondaryWaveAmplitude: 5,
+    secondaryWaveSpeed: 0.6,
+    secondaryWaveAngle: 1,
+    shadows: 2,
+    highlights: 6,
+    colorBrightness: 1.05,
+    colorSaturation: 1,
+    wireframe: false,
+    antialias: false,
+    colorBlending: 3,
+    backgroundColor: '#171717',
+    backgroundAlpha: 1,
+    grainScale: 0,
+    grainSparsity: 0,
+    grainIntensity: 0,
+    grainSpeed: 2.4,
+    resolution: 0.05,
+    yOffset: 0,
+    yOffsetWaveMultiplier: 7.2,
+    yOffsetColorMultiplier: 6.8,
+    yOffsetFlowMultiplier: 7.7,
+    flowDistortionA: 0.4,
+    flowDistortionB: 2.6,
+    flowScale: 1.9,
+    flowEase: 0.94,
+    flowEnabled: true,
+    enableProceduralTexture: true,
+    transparentTextureVoid: false,
+    textureMode: 'bitmap',
+    bakeEdgeSoftness: 1,
+    textureVoidLikelihood: 0.59,
+    textureVoidWidthMin: 120,
+    textureVoidWidthMax: 330,
+    textureBandDensity: 0.1,
+    textureColorBlending: 0,
+    textureSeed: 478,
+    textureEase: 0.86,
+    proceduralBackgroundColor: '#171717',
+    textureShapeTriangles: 51,
+    textureShapeCircles: 0,
+    textureShapeBars: 15,
+    textureShapeSquiggles: 0,
+    domainWarpEnabled: false,
+    domainWarpIntensity: 0,
+    domainWarpScale: 3,
+    vignetteIntensity: 0,
+    vignetteRadius: 0.8,
+    fresnelEnabled: false,
+    iridescenceEnabled: false,
+    prismEdgeEnabled: false,
+    bloomIntensity: 0,
+    bloomThreshold: 0.7,
+    chromaticAberration: 0,
+    shapeType: 'plane',
+    shapeRotationX: 0,
+    shapeRotationY: 0,
+    shapeRotationZ: 0,
+    shapeAutoRotateSpeedX: 0,
+    shapeAutoRotateSpeedY: 0,
+    planeBend: -0.7,
+    planeTwist: 1,
+    silhouetteFade: 0,
+    cylinderFade: 0.08,
+    ribbonFade: 0,
+    flatShading: true,
+    cameraLock: false,
+    cameraX: 0,
+    cameraY: -9.5,
+    cameraZ: 0,
+    cameraRotationX: 0.8310000000000001,
+    cameraRotationY: 0.483,
+    cameraRotationZ: 0,
+    cameraZoom: 2.05
+  };
+    if (prefersReducedMotion) {
+      config.speed = 0; // freeze animation, keep the static gradient look
+    }
+
+    var gradient = new neat.NeatGradient(Object.assign({ ref: canvas }, config));
+
+// scroll-driven motion, like neat.firecms.co: the gradient flows as the page scrolls (NEAT's yOffset follows scrollY, eased so it glides
+// with the snap instead of jumping). The yOffset*Multiplier values in the config set how strongly the waves, colours and flow respond.
+if (!prefersReducedMotion) {
+  var scrollTarget = window.pageYOffset, scrollCur = scrollTarget, scrollRaf = null;
+  var followScroll = function () {
+    scrollCur += (scrollTarget - scrollCur) * 0.1;
+    if (Math.abs(scrollTarget - scrollCur) < 0.5) scrollCur = scrollTarget;
+    gradient.yOffset = scrollCur;
+    scrollRaf = scrollCur === scrollTarget ? null : requestAnimationFrame(followScroll);
+  };
+  window.addEventListener('scroll', function () {
+    scrollTarget = window.pageYOffset;
+    if (scrollRaf === null) scrollRaf = requestAnimationFrame(followScroll);
+  }, { passive: true });
+}
+
+    // Keep the canvas crisp on resize
+    var resizeTimer;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() {
+        if (gradient && typeof gradient.resize === 'function') gradient.resize();
+      }, 150);
+    });
+  })();
+</script>
+
+<!-- PS2 theme background (Three.js, formerly Block Field): drifting, softly lit blocks that dissolve as they near the camera. The code lives in
+     assets/ps2-field.js (shared with the case-study headers); it draws on the hero canvas when BG_THEME is 'ps2'. Tweak the options here. -->
+<script src="assets/ps2-field.js?v=5"></script>
+<script>
+  if (window.BG_THEME === 'ps2') {
+    window.initPs2Field(document.getElementById('hero-gradient'), {
+      count: window.innerWidth < 700 ? 280 : 520,   // number of loose blocks
+      speed: 1,                                      // 0 = still, 1 = default, 2 = fast
+      near: 5, fade: 6,                              // blocks dissolve between near+fade and near units from the camera (smaller fade = quicker)
+      softness: 0.7,                                 // render scale; lower = softer and cheaper
+      tint: 0.4,                                     // black tint over the field: 0 = none, 0.4 = 40% toward black (the case-study headers keep the lighter default)
+      warp: 11,                                      // extra speed multiples while scrolling down
+      rewind: 1.6                                    // slow-down / pull-back while scrolling up
+    });
+  }
+</script>
+
+<script src="assets/click-sound.js?v=20261014b" defer></script>
+</body>
+</html>

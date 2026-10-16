@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chain Data Transformations - Chris Lapena</title>
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png?v=2">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=2">
+<link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48.png?v=2">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=2">
+<meta name="description" content="Replacing fragmented, script-heavy processes with a scalable chained transformation system, reducing operational friction, improving workflow efficiency, and also creating a more streamlined experience for Managed Services teams.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;900&family=Italiana&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/case-study.css?v=20261016a">
+</head>
+<body>
+
+  <header class="nav">
+    <canvas id="nav-gradient" class="nav-gradient-canvas"></canvas>
+    <a class="nav-back" href="index.html">← Back</a>
+  </header>
+
+  <div class="band band--img band--m-stack" style="background-image:url(assets/case-study-2/hero-bg-m.jpg); background-size:cover; background-position:center; background-repeat:no-repeat">
+    <div class="band-side band-side-l" aria-hidden="true" style="background-image:url(assets/case-study-2/band-l-v3.jpg)"></div>
+    <div class="band-side band-side-r" aria-hidden="true" style="background-image:url(assets/case-study-2/band-r-v3.jpg)"></div>
+    <img class="band-img" src="assets/case-study-2/band-v3.jpg" alt="Chain Data  Transformations — overview mockups" width="2560" height="760">
+    <img class="band-mock-m" src="assets/case-study-2/hero-mock-m-v3.png" alt="Chain Data Transformations — overview mockup" width="878" height="484">
+  </div>
+
+  <main>
+    <section class="row intro" style="margin-bottom:0">
+      <div class="intro-left">
+        <div class="brand">
+          <img src="assets/case-study-1/bitmap.png" alt="" width="32" height="32">
+          <span>Reputation</span>
+        </div>
+        <h1 class="title title-two">Chain Data <br>Transformations</h1>
+        <div class="chips chips-after-two">
+          <span class="chip">Web</span>
+          <span class="chip">Integrations</span>
+          <span class="chip">Complexity</span>
+        </div>
+      </div>
+      <div class="intro-right">
+        <div class="bar"></div>
+        <p class="lede">Replacing fragmented, script-heavy processes with a scalable chained transformation system, reducing operational friction, improving workflow efficiency, and also creating a more streamlined experience for Managed Services teams.</p>
+        <div class="kpi">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M9 23L23 9M23 9H11M23 9v12" stroke="#00ec9d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Cut time to complete a new chained transformation by <b>72 hours</b></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="row" style="margin-top:101px">
+      <h2 class="section">Overview</h2>
+      <div class="col">
+        <p class="sub">About Reputation</p>
+        <p>Reputation is a SaaS platform that helps businesses manage customer experience and online reputation by centralizing reviews, surveys, sentiment analysis, social engagement, and operational workflows.</p>
+        <p class="sub" style="margin-top:40px">About Rep Connect</p>
+        <p>A major part of the platform relied on integrations through Rep Connect, where businesses connected external systems to automate workflows like Review Requests,  Survey Requests, Survey Imports/Exports, User Imports, Create Locations/Listings, and Create Users. For this project I was tasked to enhance data transformation capabilities within the mapping step of all of our workflows. What initially appeared to be a small enhancement request to the mapping step ultimately uncovered broader workflow inefficiencies and UX architecture issues throughout the transformation experience.</p>
+        <img class="blk" src="assets/case-study-2/blk-01-v2.jpg" alt="About Rep Connect — illustration" width="1336" height="960" loading="lazy">
+      </div>
+    </section>
+
+    <section class="row">
+      <h2 class="section">Users</h2>
+      <div class="col">
+        <p>This initiative initially focused on Managed Services users. Managed Services teams were responsible for onboarding enterprise customers, configuring integrations, transforming customer data, mapping fields, transforming data, troubleshooting mapping logic, and maintaining operational workflows across external systems. Because integrations varied significantly between customers, users frequently relied on complex formatting, lookup, splitting, concatenation, and conditional mapping workflows. Although the project was  focused on Managed Services, we wanted the experience to be as simple and self-serve as possible. A subset of customers managed their own integrations, so it was important to design a solution that could scale and remain accessible to less technical / power users.</p>
+      </div>
+    </section>
+
+    <section class="row">
+      <h2 class="section">Problems</h2>
+      <div class="col">
+        <img class="blk" src="assets/case-study-2/blk-02-v2.jpg" alt="About Rep Connect — illustration" width="1336" height="742" loading="lazy">
+        <p class="sub">Limited Data Transformation Flexibility</p>
+        <p>A major workflow limitation (and the main customer request for this project) was that users could only apply a single transformation at a time, forcing even common multi-step formatting workflows to rely on scripts, engineering support, or operational workarounds. Tasks like concatenating names before title casing, chaining splits with lookups, or applying formatting after dynamic mappings were technically possible, but not scalable or self-service friendly within the existing product experience. </p>
+        <div class="rule"></div>
+        <img class="blk" src="assets/case-study-2/blk-03-v2.jpg" alt="Limited Data Transformation Flexibility — illustration" width="1336" height="588" loading="lazy">
+        <p class="sub">Long Turnaround Times from Engineering</p>
+        <p>Nearly every transformation required Engineering involvement, creating a bottleneck that slowed delivery from hours to several days. These requests would often fight with teams priorities as well.</p>
+        <div class="rule"></div>
+        <img class="blk" src="assets/case-study-2/blk-04-v2.jpg" alt="Long Turnaround Times from Engineering — illustration" width="1336" height="736" loading="lazy">
+        <p class="sub">Fragmented Mapping and Transformation Workflows</p>
+        <p>Additionally I found, that the existing workflow separated field mapping and data transformations into different steps, forcing users to repeatedly switch contexts to apply formatting or transformation logic, creating unnecessary navigation, repetitive configuration behavior, increased cognitive load, and a disconnected/longer overall workflow experience.</p>
+        <div class="rule"></div>
+        <p class="sub">Poor Visibility Into Data Transformation Logic</p>
+        <p>The workflow lacked previews and clear visibility into transformation outcomes, making it difficult for users to understand execution order, predict final output values, or evaluate how chained logic impacted results, ultimately increasing configuration errors and slowing down validation workflows.</p>
+        <div class="rule"></div>
+        <img class="blk" src="assets/case-study-2/blk-05-v2.jpg" alt="Poor Visibility Into Data Transformation Logic — illustration" width="1336" height="736" loading="lazy">
+        <p class="sub">Confusing Terminology</p>
+        <p>Another major issue was that non-transformation actions were incorrectly grouped under the same “transformation” layer, tightly coupling mapping, formatting, and logic behaviors into a single workflow that was harder to understand, maintain, and scale, while also blurring the distinction between how data is mapped, formatted, and transformed.</p>
+      </div>
+    </section>
+
+    <section class="row">
+      <h2 class="section">Research Insights</h2>
+      <div class="col">
+        <p>I worked closely with the Managed Services team during the design process, including multiple collaborative sessions with Gavin, to better understand their workflows. </p>
+        <p class="sub" style="margin-top:24px">Key Learnings</p>
+        <div class="list">
+          <p><span class="arrow">→</span> <strong>Users think in transformation flows, not single steps — common workflows consistently required chaining multiple operations together rather than isolated actions.</strong></p>
+          <div class="rule"></div>
+          <p><span class="arrow">→</span> <strong>There were some common use transformation combinations used like concatenation, splitting, lookups, and formatting followed by predictable sequences across different values.</strong></p>
+          <div class="rule"></div>
+          <p><span class="arrow">→</span> <strong>Workarounds and scripting were masking product gaps — many “standard” needs were being solved through manual scripts or operational effort, revealing a scalability and self-service limitation in the existing experience. This re-validated the request.</strong></p>
+          <div class="rule"></div>
+          <p><span class="arrow">→</span> <strong>The terminology of value vs transformation was validated and that the 2 steps within mapping were unnecessary.   </strong></p>
+          <div class="rule"></div>
+          <p><span class="arrow">→</span> <strong>While users could copy and reuse existing Engineering-created scripts, most still felt intimidated by scripting and were hesitant to make even small changes for fear of breaking them. As a result, Engineering intervention was almost always required.</strong></p>
+        </div>
+      </div>
+    </section>
+
+    <div class="wide"><img class="blk" src="assets/case-study-2/blk-06-v2.jpg" alt="Key Learnings — illustration" width="2320" height="824" loading="lazy"></div>
+
+    <section class="row">
+      <h2 class="section section-serif">Solutions</h2>
+      <div class="col">
+        <p>Though originally this was more of a medium size feature request, I approached the initiative also as a broader workflow redesign centered around scalability, usability, and operational efficiency. The team bought into the solutions.</p>
+        <img class="blk" src="assets/case-study-2/blk-07-v2.jpg" alt="Key Learnings — illustration" width="1336" height="736" loading="lazy">
+        <img class="blk" style="margin-top:16px" src="assets/case-study-2/blk-08-v2.jpg" alt="Key Learnings — illustration" width="1336" height="736" loading="lazy">
+        <p class="sub">Solving for Limited Transformation Flexibility by Expanding Capabilities (Main Request)</p>
+        <p style="margin-top:6px">A key limitation was the inability to apply multiple transformation rules to a single field without scripts, so I introduced chained transformation logic within the product, allowing users to stack ordered rules like concatenation, splitting, lookups, and formatting, significantly reducing engineering dependency and enabling more self-serve configuration for Managed Services workflows.</p>
+        <div class="rule"></div>
+        <img class="blk" src="assets/case-study-2/blk-09-v2.jpg" alt="Solving for Limited Transformation Flexibility by Expanding Capabilities (Main Request) — illustration" width="1336" height="420" loading="lazy">
+        <p class="sub">Significantly Quicker and More Self Serve </p>
+        <p style="margin-top:6px">With the new capabilities users were able to skip engineering intervention and cut down time to complete a new chained data transformation  to 2-5 minutes.</p>
+        <div class="rule"></div>
+        <img class="blk" src="assets/case-study-2/blk-10-v2.jpg" alt="Significantly Quicker and More Self Serve  — illustration" width="1336" height="736" loading="lazy">
+        <p class="sub">Solving Fragmented Workflows by Reducing Steps, Separating Values and Showing End Results</p>
+        <p style="margin-top:6px">Previously, field mapping and transformations were split into separate steps, forcing context switching and repetitive setup, so I unified them into a single workflow where users could map fields to values and apply transformations in one place, aligning the experience with how users naturally thinks about fields as a continuous configuration flow. As transformation flexibility increased, I redesigned the table structure and layout to improve readability and clarity, making each ordered transformation step visually traceable to its output, while a redesigned side panel enabled more structured building, editing, and validation of complex transformation chains.</p>
+        <div class="rule"></div>
+        <img class="blk" src="assets/case-study-2/blk-11-v2.jpg" alt="Solving Fragmented Workflows by Reducing Steps, Separating Values and Showing End Results — illustration" width="1336" height="736" loading="lazy">
+        <img class="blk" style="margin-top:16px" src="assets/case-study-2/blk-12-v2.jpg" alt="Solving Fragmented Workflows by Reducing Steps, Separating Values and Showing End Results — illustration" width="1336" height="736" loading="lazy">
+        <img class="blk" style="margin-top:16px" src="assets/case-study-2/blk-13-v2.jpg" alt="Solving Fragmented Workflows by Reducing Steps, Separating Values and Showing End Results — illustration" width="1336" height="736" loading="lazy">
+        <img class="blk" style="margin-top:16px" src="assets/case-study-2/blk-14-v2.jpg" alt="Solving Fragmented Workflows by Reducing Steps, Separating Values and Showing End Results — illustration" width="1336" height="736" loading="lazy">
+        <img class="blk" style="margin-top:16px" src="assets/case-study-2/blk-15-v2.jpg" alt="Solving Fragmented Workflows by Reducing Steps, Separating Values and Showing End Results — illustration" width="1336" height="736" loading="lazy">
+        <p class="sub">Enhancing Interaction Patterns for Value Selection and Configuration</p>
+        <div class="rule" style="margin-top:32px"></div>
+        <p class="sub">Increasing Transparency in Transformation Execution</p>
+      </div>
+    </section>
+
+    <section class="row">
+      <h2 class="section">Retrospective</h2>
+      <div class="col">
+        <div class="stat-solo"><svg class="stat-arrow" width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M13 35L35 13M35 13H17M35 13v18" stroke="#00ec9d" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>72 hrs</span></div>
+        <p class="stat-cap" style="margin-top:0px">average time cut to complete a new chained transformation task</p>
+        <div style="margin-top:40px" class="stack stack-gap">
+          <p>This project reinforced that small feature requests can often peel a off a lot more layers to the onion. It can surface deeper systemic workflow and scalability issues across the product. What began as a request for chained formatting rules ultimately revealed fragmented workflows, unclear architecture, and usability gaps in the broader integration experience. </p>
+          <p>It deepened my focus on designing for user mental models and transformation outcomes rather than system constraints, showing how thoughtful UX can reduce operational complexity while preserving flexibility and extensibility across all integrations. At the end, managed services team liked the update!</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="page-end"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="assets/ps2-field.js?v=5"></script>
+<script src="assets/neat.js"></script>
+<script src="assets/case-study.js?v=20261012i"></script>
+<script src="assets/click-sound.js?v=20261014b" defer></script>
+</body>
+</html>

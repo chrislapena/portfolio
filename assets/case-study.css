@@ -1,0 +1,639 @@
+  @font-face {
+    font-family: 'Alpha Lyrae';
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+    src: url(../fonts/AlphaLyrae-Medium.ttf) format('truetype');
+  }
+
+  :root {
+    --ink: #080808;
+    --ink-soft: #1e1e1e;
+    --ink-80: rgba(0, 0, 0, 0.8);
+    --body: #717171;
+    --rule: #e7e7e7;
+    --chip: #f2f2f2;
+    --brand: #004f5d;
+    --link: #35b5ff;
+    --panel: linear-gradient(221.48deg, rgb(49, 49, 49) 1.9%, rgb(9, 25, 29) 99.8%);
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+
+  html {
+    background: #131313;
+    overscroll-behavior-y: none;
+    cursor: url('cursor-dart.svg') 2 2, auto;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    color: var(--ink-soft);
+    font-family: 'Alexandria', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+
+  a, button, [role="button"], label[for], input[type="submit"], input[type="button"], select {
+    cursor: pointer;
+  }
+
+  img { display: block; }
+  p { margin: 0; }
+
+  /* ---------- NAV ---------- */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    overflow: hidden;
+    background: #131313;
+  }
+  .nav-gradient-canvas {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    height: 480px;
+    display: block;
+    z-index: -1;
+  }
+  .nav a {
+    position: relative;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .nav-back {
+    font-family: 'Alpha Lyrae', 'Alexandria', sans-serif;
+    font-size: 16px;
+    letter-spacing: -0.32px;
+    color: #fff;
+  }
+  .nav-back:hover,
+  .nav-back:focus-visible { color: var(--link); }
+
+  /* ---------- HERO BAND ---------- */
+  .band {
+    height: 380px;
+    padding-top: 61px;
+    background: linear-gradient(205.47deg, rgb(49, 49, 49) 1.9%, rgb(9, 25, 29) 99.8%);
+    overflow: hidden;
+  }
+  .band-shot {
+    position: relative;
+    width: min(761px, calc(100% - 48px));
+    aspect-ratio: 761 / 319;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+  /* below ~810px the mock is narrower than its 761px design size, so the band shrinks with it; with a fixed 380px height the mock stopped short and left a gap under it */
+  @media (max-width: 809px) { .band:not(.band--img) { height: auto; } }
+  .band-shot img {
+    position: absolute;
+    top: 0;
+    left: -0.01%;
+    width: 100.02%;
+    height: 160%;
+    max-width: none;
+  }
+
+  /* ---------- LAYOUT ---------- */
+  .row {
+    display: grid;
+    grid-template-columns: 1fr minmax(0, 668px);
+    padding: 0 60px;
+    max-width: 1280px;
+    margin: 0 auto;
+    column-gap: 0;
+  }
+  .row + .row { margin-top: 120px; }
+
+  .intro { padding-top: 60px; margin-bottom: 120px; }
+  .intro-left { padding-right: 24px; }
+  .intro-right { padding-top: 76px; }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 32px;
+  }
+  .brand img { width: 32px; height: 32px; border-radius: 10px; }
+  .brand span {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--brand);
+  }
+
+  h1.title {
+    font-family: 'Alpha Lyrae', 'Alexandria', sans-serif;
+    font-weight: 500;
+    font-size: 40px;
+    line-height: 61px;
+    letter-spacing: 0;
+    color: var(--ink);
+    margin: 0;
+    -webkit-text-stroke: 1.5px #000;
+    transform: scaleX(0.97);
+    transform-origin: left;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .chip {
+    background: var(--chip);
+    color: #000;
+    font-weight: 500;
+    font-size: 16px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+
+  .bar {
+    width: 56px;
+    height: 8px;
+    border-radius: 10px;
+    background: var(--rule);
+    margin-bottom: 20px;
+  }
+  .lede {
+    margin: 0;
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 1.5;
+    letter-spacing: -0.38px;
+  }
+  .kpi {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 13px;
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 1.5;
+    letter-spacing: -0.38px;
+  }
+  .kpi b { font-weight: 900; }
+  .kpi svg, .stat-arrow { flex: none; }
+
+  h2.section {
+    font-family: 'Alpha Lyrae', 'Alexandria', sans-serif;
+    font-weight: 500;
+    font-size: 36px;
+    line-height: 61px;
+    letter-spacing: 0;
+    color: var(--ink);
+    margin: 0;
+    -webkit-text-stroke: 1.5px #000;
+    transform: scaleX(0.97);
+    transform-origin: left;
+  }
+
+  h2.section.section-serif {
+    font-family: 'Italiana', 'Alpha Lyrae', serif;
+    font-weight: 400;
+    font-size: 46px;
+    letter-spacing: -0.92px;
+    -webkit-text-stroke: 0;
+  }
+  @media (min-width: 901px) {
+    h2.section.section-serif {
+      position: sticky;
+      top: 84px;
+      align-self: start;
+    }
+  }
+
+  .col > * + * { margin-top: 32px; }
+  .col > .sub + p,
+  .col > .sub + .list { margin-top: 8px; }
+  .col > .sub + .list { margin-top: 16px; }
+
+  .row-overview .col { padding-top: 10px; }
+  .col > .sub.tight { margin-top: 24px; }
+  @media (min-width: 901px) { .col p.sub.nowrap-lg { white-space: nowrap; } }
+
+  .col p.sub {
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 1.5;
+    letter-spacing: -0.264px;
+    color: var(--ink-80);
+  }
+  .col p {
+    font-size: 16px;
+    line-height: 1.5;
+    letter-spacing: -0.304px;
+    color: var(--body);
+  }
+  .stack p + p { margin-top: 0; }
+
+  .rule {
+    height: 2px;
+    border-radius: 10px;
+    background: var(--rule);
+  }
+
+  .list > * + * { margin-top: 16px; }
+  .list p .arrow { color: var(--body); }
+  .list p strong {
+    font-weight: 500;
+    color: var(--ink-80);
+  }
+
+  .shot {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+  }
+  .shot img { width: 100%; height: 100%; object-fit: cover; }
+
+  .shot-home {
+    aspect-ratio: 668 / 310;
+    background: linear-gradient(216.64deg, rgb(49, 49, 49) 1.9%, rgb(9, 25, 29) 99.8%);
+  }
+  .shot-home img {
+    position: absolute;
+    height: 193.98%;
+    left: 2.55%;
+    top: -17.73%;
+    width: 107.23%;
+    max-width: none;
+    object-fit: fill;
+  }
+  .shot-research { aspect-ratio: 668 / 248; }
+
+  .panel {
+    min-height: 368px;
+    background: var(--panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+  }
+  .panel img {
+    width: var(--w);
+    max-width: 100%;
+    height: auto;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: 284px minmax(0, 1fr);
+    column-gap: 11px;
+  }
+  .stat-num {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-weight: 700;
+    font-size: 80px;
+    line-height: 1.5;
+    letter-spacing: -1.52px;
+    color: var(--ink-soft);
+  }
+  .stat-num.second { padding-left: 0; }
+  .stat-cap {
+    margin: 0;
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 1.5;
+    letter-spacing: -0.38px;
+    color: var(--ink-soft);
+  }
+  .col .stat-cap {
+    font-size: 20px;
+    color: var(--ink-soft);
+    letter-spacing: -0.38px;
+  }
+
+  .page-end { height: 100px; }
+
+  @media (max-width: 900px) {
+    .nav { padding: 0 24px; }
+    .row { grid-template-columns: 1fr; padding: 0 24px; }
+    .row + .row { margin-top: 72px; }
+    .intro { padding-top: 40px; margin-bottom: 72px; }
+    .intro-left { padding-right: 0; }
+    .intro-right { padding-top: 32px; }
+    h2.section { margin-bottom: 16px; line-height: 1.3; }
+    h1.title { line-height: 1.3; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .stat-num { font-size: 56px; }
+    .panel { padding: 20px; min-height: 0; }
+  }
+
+  /* ---------- SHARED ADDITIONS FOR CASE STUDIES 2-5 ---------- */
+  .band--img { position: relative; overflow: hidden; height: 380px; padding: 0; background: #131313; }
+  .band-side { position: absolute; top: 0; bottom: 0; width: 50%; background-size: 100% 100%; background-repeat: no-repeat; }
+  .band-side-l { left: 0; }
+  .band-side-r { right: 0; }
+  .band-grain { position: absolute; inset: 0; display: none; background-repeat: repeat; background-size: 256px 256px; pointer-events: none; }
+  @supports (mix-blend-mode: plus-lighter) { .band-grain { display: block; mix-blend-mode: plus-lighter; } }
+  .band-img { position: relative; display: block; width: 100%; max-width: 1280px; height: 380px; margin: 0 auto; object-fit: cover; object-position: center; }
+
+  h1.title.title-two { line-height: 46px; margin-top: 7px; }
+  .chips.chips-after-two { margin-top: 12px; }
+
+  .blk { display: block; width: 100%; height: auto; }
+  .wide { max-width: 1280px; margin: 120px auto 0; padding: 0 60px; }
+  .wide + .row { margin-top: 60px; }
+  .row + .wide { margin-top: 120px; }
+  .wide .blk { width: 100%; }
+
+  .col p b, .col li b { font-weight: 700; }
+  .stack.stack-gap p + p,
+  .stack.stack-gap p + ul,
+  .stack.stack-gap ul + p { margin-top: 24px; }
+  .col ul.bullets {
+    margin: 0;
+    padding-left: 24px;
+    font-size: 16px;
+    line-height: 1.5;
+    letter-spacing: -0.304px;
+    color: var(--body);
+  }
+  .col ul.bullets li { margin: 0; }
+
+  .stat-solo {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-weight: 700;
+    font-size: 80px;
+    line-height: 1.5;
+    letter-spacing: -1.52px;
+    color: var(--ink-soft);
+  }
+  .stat-solo svg { flex: none; }
+
+  @media (min-width: 901px) {
+    .row-sticky h2.section.section-serif { position: sticky; top: 84px; align-self: start; }
+  }
+  @media (max-width: 900px) {
+    .band-side { display: none; }
+    .band-img { height: auto; aspect-ratio: 1280 / 380; }
+    .band--img { height: auto; }
+    .wide { padding: 0 24px; margin-top: 72px; }
+    .wide + .row { margin-top: 72px; }
+    .row + .wide { margin-top: 72px; }
+    h1.title.title-two { line-height: 1.2; }
+  }
+  /* small phones: 24px left and right margins for the page content (same as the 441-900px range) */
+  @media (max-width: 440px) {
+    .row, .wide { padding-left: 24px; padding-right: 24px; }
+  }
+
+  .chip-break { flex-basis: 100%; height: 0; }
+
+/* Stretch variant: the hero image itself fills the full width at any screen size */
+.band--stretch .band-img { width: 100%; max-width: none; object-fit: fill; }
+@media (max-width: 900px) { .band--stretch .band-img { height: auto; object-fit: cover; } }
+
+/* Stack variant: background stretches to any width; the screen mock stays at its native size, centered */
+.band--stack { background-size: 100% 100%; background-repeat: no-repeat; background-position: center; }
+.band--stack .band-mock { position: absolute; left: 50%; top: 32px; width: 647px; height: 348px; transform: translateX(-50%); display: block; }
+@media (max-width: 900px) {
+  .band--stack { height: 29.7vw; min-height: 0; }
+  .band--stack .band-mock { top: 2.5vw; width: 50.5vw; height: auto; }
+}
+
+/* Figma top-corner radius on the hero mocks (CS3: 5px, CS5: 10px); scales with the mock on phones */
+.band--stack .band-mock { border-radius: 5px 5px 0 0; }
+.band--stack.band--r10 .band-mock { border-radius: 10px 10px 0 0; }
+@media (max-width: 900px) {
+  .band--stack .band-mock { border-radius: 0.77vw 0.77vw 0 0; }
+  .band--stack.band--r10 .band-mock { border-radius: 1.55vw 1.55vw 0 0; }
+}
+
+/* ---------- INTERACTIVE PROTOTYPE (case study 1) ---------- */
+.proto .section { margin-bottom: 0; }
+.proto-intro { margin: 0 0 32px; font-size: 16px; line-height: 1.5; letter-spacing: -0.304px; color: var(--body); }
+.proto-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 760px;
+  overflow: hidden;
+  background: #1f4650 center / cover no-repeat;
+}
+/* iPhone 13 mini, Midnight: 375x812pt screen shown at 305x661, aluminum rail + black bezel + notch */
+.proto-device {
+  position: relative; width: 329px; padding: 3px; box-sizing: border-box; border-radius: 52px;
+  background: linear-gradient(145deg, #4b4f56 0%, #1d1e21 38%, #2f3237 62%, #17181a 100%);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+.proto-bezel { position: relative; padding: 9px; border-radius: 49px; background: #050505; }
+/* side buttons: mute (left), volume up/down (left), power (right) */
+.proto-bezel::before {
+  content: ""; position: absolute; left: -6px; top: 100px; width: 3px; height: 20px;
+  background: #2b2e33; border-radius: 2px 0 0 2px;
+
+}
+.proto-device::before, .proto-device::after {
+  content: ""; position: absolute; width: 3px; background: #2b2e33;
+}
+.proto-device::before { left: -3px; top: 150px; height: 38px; border-radius: 2px 0 0 2px; box-shadow: 0 52px 0 0 #2b2e33; }
+.proto-device::after { right: -3px; top: 150px; height: 62px; border-radius: 0 2px 2px 0; }
+.proto-phone { position: relative; width: 305px; height: 661px; background: #d9d9d9; overflow: hidden; border-radius: 40px; container-type: inline-size; }
+/* notch */
+.proto-phone::after {
+  content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 132px; height: 25px; background: #050505; border-radius: 0 0 18px 18px;
+  pointer-events: none; z-index: 5;
+}
+.proto-screen {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; pointer-events: none; user-select: none;
+  transition: opacity .22s ease;
+}
+.proto-screen.is-active { opacity: 1; }
+.proto-hot {
+  position: absolute; padding: 0; margin: 0; border: 0; border-radius: 6px;
+  background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: background-color .15s ease, box-shadow .15s ease;
+}
+.proto-hot:hover, .proto-hot:focus-visible {
+  background: rgba(53, 181, 255, 0.14);
+  box-shadow: inset 0 0 0 1.5px rgba(53, 181, 255, 0.75);
+  outline: none;
+}
+@media (max-width: 900px) {
+  .proto-box { height: auto; padding: 32px 16px; }
+  .proto-device { width: min(329px, 84vw); }
+  .proto-phone { width: 100%; height: auto; aspect-ratio: 375 / 812; }
+}
+
+
+/* dead-spot tap: briefly flash the clickable areas of the current screen */
+@keyframes proto-flash {
+  0%   { background-color: rgba(53, 181, 255, 0);    box-shadow: inset 0 0 0 0 rgba(53, 181, 255, 0); }
+  18%  { background-color: rgba(53, 181, 255, 0.30); box-shadow: inset 0 0 0 2px rgba(53, 181, 255, 0.95); }
+  62%  { background-color: rgba(53, 181, 255, 0.22); box-shadow: inset 0 0 0 2px rgba(53, 181, 255, 0.8); }
+  100% { background-color: rgba(53, 181, 255, 0);    box-shadow: inset 0 0 0 0 rgba(53, 181, 255, 0); }
+}
+.proto-hot.proto-flash { animation: proto-flash 1s ease-out 1; }
+@media (prefers-reduced-motion: reduce) {
+  .proto-hot.proto-flash { animation-duration: 0.01s; background-color: rgba(53, 181, 255, 0.25); box-shadow: inset 0 0 0 2px rgba(53, 181, 255, 0.9); }
+}
+
+  /* ---------- "PROTOTYPE" JUMP BUTTON (case study 1) ---------- */
+  .proto { scroll-margin-top: 88px; }
+  .proto-fab {
+    /* always pinned to the bottom-right corner of the viewport, whatever the device */
+    position: fixed; z-index: 20; right: 60px; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box; width: 126px; height: 46px;
+    background: #2175a6; border: 2px solid #2175a6; color: #fff; text-decoration: none;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: background-color .15s ease, border-color .15s ease, opacity .28s ease, transform .28s ease, visibility 0s linear 0s;
+  }
+  .proto-fab:hover, .proto-fab:focus-visible { background: #18567a; border-color: #18567a; outline: none; }
+  .proto-fab-label {
+    position: absolute; left: 10px; top: 10px; white-space: nowrap;
+    font-family: 'Alpha Lyrae', 'Alexandria', sans-serif; font-weight: 500; font-size: 16px; line-height: normal; letter-spacing: 0;
+    transform: scaleX(0.97); transform-origin: left;
+  }
+  .proto-fab-arrow {
+    position: absolute; right: 6px; top: 14px; width: 29px; height: 15px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Alexandria', sans-serif; font-weight: 900; font-size: 24px; line-height: normal; transform: rotate(90deg);
+  }
+  .proto-fab.is-hidden { opacity: 0; transform: translateY(16px); pointer-events: none; visibility: hidden; transition: background-color .15s ease, border-color .15s ease, opacity .28s ease, transform .28s ease, visibility 0s linear .28s; }
+  @keyframes proto-fab-bounce {
+    0%, 100% { transform: translateY(0); }
+    18% { transform: translateY(-16px); }
+    36% { transform: translateY(0); }
+    52% { transform: translateY(-8px); }
+    68% { transform: translateY(0); }
+    80% { transform: translateY(-3px); }
+  }
+  .proto-fab.is-bouncing { animation: proto-fab-bounce 0.95s cubic-bezier(0.33, 0, 0.3, 1) 1; }
+  @media (prefers-reduced-motion: reduce) { .proto-fab.is-bouncing { animation: none; } .proto-fab, .proto-fab.is-hidden { transition-duration: 0.01s; } }
+
+@media (max-width: 900px) { .proto-fab { right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); } }
+
+/* no hover states on phones (440px and below) or on any touch-only device */
+@media (max-width: 440px), (hover: none) {
+  .nav-back:hover, .nav-back:focus-visible { color: #fff; }
+  .proto-hot:hover { background: transparent; box-shadow: none; }
+  .proto-fab:hover, .proto-fab:focus-visible { background: #2175a6; border-color: #2175a6; }
+}
+
+/* lazy-loaded images below the fold must not make the browser shift the scroll position */
+html { overflow-anchor: none; }
+
+/* small phones (440px and below): every case-study hero is 225px tall */
+@media (max-width: 440px) {
+  /* case study 1: the mock keeps its shape and still ends at the bottom edge; the space above it makes up the rest of the 225px */
+  .band:not(.band--img) { height: 225px; padding-top: calc(225px - (100vw - 48px) * 0.419185); }
+  /* case studies 2 and 4: one flat picture, so it fills 225px by covering (centred) */
+  .band--img:not(.band--stack) { height: 225px; }
+  .band--img:not(.band--stack) .band-img { height: 225px; aspect-ratio: auto; object-fit: cover; }
+  /* case studies 3 and 5: the mock is enlarged and sits on the bottom edge */
+  .band--stack { height: 225px; }
+  .band--stack .band-mock { top: auto; bottom: 0; width: min(374px, calc(100vw - 32px)); height: auto; }
+}
+
+/* case study 2 on small phones: same treatment as the Social Queues hero, a cropped mock (left side kept) sitting on the bottom edge over the background */
+.band-mock-m { display: none; }
+@media (max-width: 440px) {
+  .band--m-stack { height: 225px; }
+  .band--m-stack .band-img { display: none; }
+  .band--m-stack .band-mock-m {
+    display: block; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+    width: min(374px, calc(100vw - 32px)); height: auto; aspect-ratio: 647 / 348;
+    object-fit: cover; object-position: left top; border-radius: 10px 10px 0 0;
+  }
+}
+
+/* PS2 theme: the header background is pale, so the Back link is black; it eases to white whenever the blocks behind it are dark (the
+   "on-dark" class is set by assets/ps2-field.js), and goes blue on hover or keyboard focus as it does on the other themes. */
+html.theme-ps2 .nav-back { color: #000; -webkit-text-stroke: 0.4px #000; transition: color 0.5s ease, -webkit-text-stroke-color 0.5s ease; }
+html.theme-ps2 .nav-back.on-dark { color: #fff; -webkit-text-stroke-color: #fff; }
+html.theme-ps2 .nav-back:hover,
+html.theme-ps2 .nav-back:focus-visible,
+html.theme-ps2 .nav-back.on-dark:hover,
+html.theme-ps2 .nav-back.on-dark:focus-visible { color: var(--link); -webkit-text-stroke-color: var(--link); transition-duration: 0.2s; }
+/* no hover colour on phones or touch-only devices */
+@media (max-width: 440px), (hover: none) {
+  html.theme-ps2 .nav-back:hover { color: #000; -webkit-text-stroke-color: #000; }
+  html.theme-ps2 .nav-back.on-dark:hover { color: #fff; -webkit-text-stroke-color: #fff; }
+}
+
+/* case study 3: the prototype box is just its background for now (the prototype itself comes later), so it needs a height of its own */
+.proto-box--empty { min-height: 760px; }
+@media (max-width: 900px) { .proto-box--empty { min-height: 460px; } }
+
+/* ---------- case study 3: the Home page prototype viewport (923 x 680) ---------- */
+.p3-viewport {
+  position: absolute; top: 0; left: 0; width: 100%; aspect-ratio: 923 / 680; background: #fff; border-radius: 6px; overflow: hidden;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+.p3-scroll { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none; }
+/* no visible scrollbar: it would take ~10px from the width of tall screens only (the home screen), scaling them smaller than the short ones and making the picture jump between screens */
+.p3-scroll::-webkit-scrollbar { display: none; }
+.p3-screen { display: none; position: relative; width: 100%; }
+.p3-screen.is-active { display: block; }
+.p3-fill { display: block; height: var(--p3-gap, 0px); background: var(--fill-img) left bottom / 100% 100000px no-repeat; }
+.p3-screen img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+@keyframes p3-in { from { opacity: 0.55; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .p3-screen.is-active { animation: none; } }
+/* the same button the case study 1 prototype ends on: #3694ca fill, white "Reset Prototype", rounded corners, centred near the bottom */
+.p3-reset {
+  position: absolute; left: 50%; bottom: 22px; z-index: 3; transform: translate(-50%, 8px); opacity: 0; pointer-events: none;
+  width: 141px; height: 51px; padding: 0; border: 0; border-radius: 12px;
+  background: #3694ca; color: #fff; font: 400 15px/1 -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif; letter-spacing: 0.01em; cursor: pointer;
+  transition: opacity 0.25s ease, transform 0.25s ease, filter 0.15s ease;
+}
+.p3-viewport.is-end .p3-reset { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+.p3-reset:hover, .p3-reset:focus-visible { filter: brightness(1.08); outline: none; }
+@media (hover: none) { .p3-reset:hover { filter: none; } }
+.p3-debug .proto-hot { outline: 2px solid #ff0064; background: rgba(255, 0, 100, 0.16); }
+
+/* fixed top bar + side nav drawn over the scrolling screens 10000 and 15 */
+.p3-fixed { display: none; position: absolute; inset: 0 var(--p3-sb, 0px) 0 0; z-index: 2; pointer-events: none; }
+.p3-fixed.is-active { display: block; }
+.p3-fixed-top, .p3-fixed-left { position: absolute; pointer-events: auto; background-image: var(--img); background-repeat: no-repeat; }
+.p3-fixed-top { left: 0; top: 0; width: 100%; height: calc(var(--p3-w) * 50 / 1440); background-size: var(--p3-w) auto; background-position: 0 0; }
+.p3-fixed-left { left: 0; top: calc(var(--p3-w) * 50 / 1440); bottom: 0; width: calc(var(--p3-w) * 50 / 1440); background-size: var(--p3-w) auto; background-position: 0 calc(var(--p3-w) * -50 / 1440); }
+
+/* case study 3: however narrow the screen gets, the prototype keeps a 20px margin to the left and right of its gradient box
+   (the shared small-screen rule would otherwise leave 0px between 900 and ~1040px wide, and 16px below that) */
+.proto-box--p3 { padding-left: 20px; padding-right: 20px; }
+/* a fixed 923 x 680 slot holds the viewport: the screens are anchored to its top, so a screen with a different height never moves the picture (or the page below) */
+.p3-slot { position: relative; width: min(923px, 100%); aspect-ratio: 923 / 680; flex: none; }
+@media (min-width: 901px) and (max-width: 1100px) { .proto-box--p3 { padding-left: 40px; padding-right: 40px; } }
+
+/* case study 4 hero: the storm background fills the whole width (like case studies 3 and 5) and the hand and ball sit on top, left of centre where the design puts them */
+.band--img.band--orb { background-size: 100% 100%; background-repeat: no-repeat; background-position: center; }
+.band--orb .band-orb { position: absolute; top: 0; left: calc(50% - 600px); width: 736px; height: 379px; display: block; }
+@media (max-width: 900px) {
+  .band--img.band--orb { height: 29.7vw; }
+  .band--orb .band-orb { left: 3.125vw; width: 57.5vw; height: auto; }
+}
+@media (max-width: 440px) {
+  .band--img.band--orb { height: 225px; }
+  .band--orb .band-orb { left: calc(50% - 355px); width: 437px; height: 225px; }
+}
+
+/* Home Page Redesign intro: on desktop the right column starts 117px down (lined up with the title block); on tablets and phones it uses the same
+   spacing as the other case studies (32px above the bar, and no extra gap above the chips that the two-line titles need) */
+.intro--cs3 .intro-right { padding-top: 117px; }
+@media (max-width: 900px) {
+  .intro--cs3 .intro-right { padding-top: 32px; }
+  .intro--cs3 .chips.chips-after-two { margin-top: 6px; }
+}
