@@ -1417,7 +1417,7 @@ if (!prefersReducedMotion) {
 
 <!-- PS2 theme background (Three.js, formerly Block Field): drifting, softly lit blocks that dissolve as they near the camera. The code lives in
      assets/ps2-field.js (shared with the case-study headers); it draws on the hero canvas when BG_THEME is 'ps2'. Tweak the options here. -->
-<script src="assets/ps2-field.js?v=8"></script>
+<script src="assets/ps2-field.js?v=9"></script>
 <script>
   if (window.BG_THEME === 'ps2') {
     window.initPs2Field(document.getElementById('hero-gradient'), {
@@ -1426,17 +1426,33 @@ if (!prefersReducedMotion) {
       near: 5, fade: 6,                              // blocks dissolve between near+fade and near units from the camera (smaller fade = quicker)
       softness: 0.7,                                 // render scale; lower = softer and cheaper
       tint: 0.4,                                     // black tint over the field: 0 = none, 0.4 = 40% toward black (the case-study headers keep the lighter default)
-      pin: /[?&]pin(=|&|$)/.test(location.search),   // TEST SWITCH: add ?pin=1 to the address to try the picture running under iPhone Safari's bottom bar
-      edge: function (stops) {                       // iPhone Safari shows the PAGE background behind its floating bottom bar (fixed layers stop above it), so the page
-        var root = document.documentElement, strip = document.querySelector('.strip');   // background follows the colours along the picture's bottom edge
-        var p = strip ? parseFloat(strip.style.getPropertyValue('--works-bg')) || 0 : 0;  // and fades to the dark Selected Works colour as that takes over
-        var d = 35;
-        var css = stops.map(function (c, i) {
-          var m = c.map(function (v) { return Math.round(v + (d - v) * p); });
-          return 'rgb(' + m.join(',') + ') ' + Math.round(i * 100 / (stops.length - 1)) + '%';
-        }).join(',');
-        root.style.background = 'linear-gradient(to right,' + css + ')';
-      },
+      pin: /[?&]pin=sticky/.test(location.search) ? 'sticky' : /[?&]pin(=|&|$)/.test(location.search),   // TEST SWITCH: ?pin=1 (script-pinned) or ?pin=sticky (browser-pinned) runs the picture under iPhone Safari's bars
+      edge: (function () {                           // iPhone Safari fills the strips outside the page (behind the bottom bar, under the status bar) from the PAGE background, and
+        var root = document.documentElement, strip = document.querySelector('.strip');   // will not paint fixed layers there. So the page background follows the picture's
+        var bottom = null, top = null, mode = /[?&]pin/.test(location.search);           // edge colours, and fades to the dark Selected Works colour as that takes over.
+        function worksP() {                          // how far the dark Selected Works backdrop has come in (0 to 1), the same formula that drives the backdrop itself
+          if (!strip) return 0;
+          return Math.max(0, Math.min(1, 1 - strip.getBoundingClientRect().top / (window.innerHeight * 0.8)));
+        }
+        function mix(c, p) { return c.map(function (v) { return Math.round(v + (35 - v) * p); }); }
+        function avg(stops) { var t = [0, 0, 0]; stops.forEach(function (c) { t[0] += c[0]; t[1] += c[1]; t[2] += c[2]; }); return t.map(function (v) { return Math.round(v / stops.length); }); }
+        function apply() {
+          if (!bottom) return;
+          var p = worksP();
+          if (mode) {                                // picture runs under the bars: only the status bar strip needs a colour (the top edge), and the picture itself steps aside in Works
+            root.style.background = 'rgb(' + mix(avg(top), p).join(',') + ')';
+            var cv = document.getElementById('hero-gradient');
+            if (cv) { cv.style.opacity = String(1 - p); cv.style.visibility = p >= 0.995 ? 'hidden' : 'visible'; }
+          } else {
+            root.style.background = 'linear-gradient(to right,' + bottom.map(function (c, i) {
+              return 'rgb(' + mix(c, p).join(',') + ') ' + Math.round(i * 100 / (bottom.length - 1)) + '%';
+            }).join(',') + ')';
+          }
+        }
+        window.addEventListener('scroll', apply, { passive: true });
+        window.addEventListener('resize', apply);
+        return function (b, t) { bottom = b; top = t; apply(); };
+      })(),
       warp: 11,                                      // extra speed multiples while scrolling down
       rewind: 1.6                                    // slow-down / pull-back while scrolling up
     });

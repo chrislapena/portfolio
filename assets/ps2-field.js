@@ -11,6 +11,7 @@
 //   pin        true = draw the picture as part of the scrolling page (not a fixed layer) and pin it in place with a little script, with extra picture
 //              above and below the screen. iPhone Safari (iOS 26) will not paint fixed layers under its floating bottom bar, but it does paint
 //              normal page content there, so this lets the animation run all the way to the bottom edge.
+//              'sticky' = same, but the browser does the pinning (CSS position: sticky), so there is no script lag while scrolling.
 //   edge       a function; a few times a second it receives the colours along the very bottom edge of the picture (an array of 7 [r,g,b] values,
 //              left to right, 0-255, as they look on screen). The home page uses it to colour the page background, which iPhone Safari shows
 //              behind its floating bottom bar (it will not paint fixed layers there)
@@ -166,25 +167,27 @@ window.initPs2Field = function (canvas, options) {
   /* Pin mode: the canvas lives in a wrapper that spans the whole page (clipped, so it adds no scroll room); it is taller than the screen by OVER px above
      and BLEED px below, shifted with the scroll position so it looks fixed. The camera is told the picture is the screen-sized window in the middle of
      that taller frame, so the part on screen looks exactly like the normal fixed canvas, and the extra rows just continue the scene. */
-  var PIN = !!o.pin, OVER = 140, BLEED = 200, pinWrap = null, vpH = 0;
+  var PIN = !!o.pin, STICKY = o.pin === 'sticky', OVER = 140, BLEED = 200, pinWrap = null, vpH = 0;
   function pinFit() {
     vpH = window.innerHeight;
     pinWrap.style.height = Math.max(document.documentElement.scrollHeight, vpH + OVER + BLEED) + 'px';
-    canvas.style.top = -OVER + 'px';
+    canvas.style.top = -OVER + 'px';   /* absolute: where it sits; sticky: the offset it holds while scrolling */
     canvas.style.height = (vpH + OVER + BLEED) + 'px';
   }
-  function pinMove() { canvas.style.transform = 'translate3d(0,' + Math.round(window.pageYOffset) + 'px,0)'; }
+  function pinMove() { if (STICKY) return; canvas.style.transform = 'translate3d(0,' + Math.round(window.pageYOffset) + 'px,0)'; }
   function pinSetup() {
     pinWrap = document.createElement('div');
     pinWrap.setAttribute('aria-hidden', 'true');
-    pinWrap.style.cssText = 'position:absolute;left:0;top:0;width:100%;overflow:hidden;pointer-events:none;z-index:-1;';
+    pinWrap.style.cssText = 'position:absolute;left:0;top:0;width:100%;pointer-events:none;z-index:-1;overflow:' + (STICKY ? 'clip' : 'hidden') + ';';   /* clip (not hidden) keeps sticky working */
     document.body.insertBefore(pinWrap, document.body.firstChild);
     pinWrap.appendChild(canvas);
-    canvas.style.position = 'absolute';
+    canvas.style.position = STICKY ? 'sticky' : 'absolute';
     canvas.style.left = '0';
     canvas.style.width = '100%';
     canvas.style.zIndex = 'auto';
-    canvas.style.willChange = 'transform';
+    canvas.style.display = 'block';
+    if (STICKY) canvas.style.marginTop = -OVER + 'px';   /* its natural spot is already OVER px above the screen top, so sticking never shifts the picture */
+    else canvas.style.willChange = 'transform';
     pinFit(); pinMove();
     window.addEventListener('scroll', pinMove, { passive: true });
     window.addEventListener('resize', pinFit);
@@ -233,13 +236,17 @@ window.initPs2Field = function (canvas, options) {
   function sampleEdge() {
     var w = rt.width, rows = 4, buf = new Uint8Array(w * rows * 4), stops = [], N = 7;
     renderer.readRenderTargetPixels(rt, 0, 0, w, rows, buf);
+    var bufTop = new Uint8Array(w * rows * 4);
+    renderer.readRenderTargetPixels(rt, 0, Math.max(0, rt.height - rows), w, rows, bufTop);
+    var colours = function (b) { var out = [];
     for (var i = 0; i < N; i++) {
-      var x0 = Math.floor(i * w / N), x1 = Math.max(x0 + 1, Math.floor((i + 1) * w / N)), r = 0, g = 0, b = 0, n = 0;
-      for (var y = 0; y < rows; y++) for (var x = x0; x < x1; x++) { var q = (y * w + x) * 4; r += buf[q]; g += buf[q + 1]; b += buf[q + 2]; n++; }
-      var c = [r / n, g / n, b / n].map(function (v) { return Math.round(255 * Math.pow(Math.min(1, v / 255 * 1.16), 0.9) * (1 - o.tint)); });
-      stops.push(c);
+      var x0 = Math.floor(i * w / N), x1 = Math.max(x0 + 1, Math.floor((i + 1) * w / N)), r = 0, g = 0, bl = 0, n = 0;
+      for (var y = 0; y < rows; y++) for (var x = x0; x < x1; x++) { var q = (y * w + x) * 4; r += b[q]; g += b[q + 1]; bl += b[q + 2]; n++; }
+      var c = [r / n, g / n, bl / n].map(function (v) { return Math.round(255 * Math.pow(Math.min(1, v / 255 * 1.16), 0.9) * (1 - o.tint)); });
+      out.push(c);
     }
-    o.edge(stops);
+    return out; };
+    o.edge(colours(buf), colours(bufTop));
   }
 
   function draw() {
