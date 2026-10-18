@@ -246,7 +246,9 @@ window.initPs2Field = function (canvas, options) {
     var w = rt.width, rows = 4, buf = new Uint8Array(w * rows * 4), stops = [], N = 24;
     renderer.readRenderTargetPixels(rt, 0, 0, w, rows, buf);
     var bufTop = new Uint8Array(w * rows * 4);
-    renderer.readRenderTargetPixels(rt, 0, Math.max(0, rt.height - rows), w, rows, bufTop);
+    var topY = rt.height - rows;
+    if (o.topAt != null && canvas.clientHeight) topY = Math.round(rt.height - (o.topAt / canvas.clientHeight) * rt.height) - rows;   /* a header showing only a window of a taller canvas: sample at the top of that window */
+    renderer.readRenderTargetPixels(rt, 0, Math.max(0, Math.min(rt.height - rows, topY)), w, rows, bufTop);
     var colours = function (b) { var out = [];
     for (var i = 0; i < N; i++) {
       var x0 = Math.floor(i * w / N), x1 = Math.max(x0 + 1, Math.floor((i + 1) * w / N)), r = 0, g = 0, bl = 0, n = 0;

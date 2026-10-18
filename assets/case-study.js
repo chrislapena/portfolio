@@ -19,7 +19,17 @@
     if (!canvas || canvas.__navGradient) return;
     if (NAV_THEME === 'ps2' && window.THREE && window.initPs2Field) {
       // a calm strip: fewer blocks, a smaller shadow map, no pointer tilt and no scroll rush
-      window.initPs2Field(canvas, { count: 150, speed: 1, softness: 0.6, shadowMap: 1024, warp: 0, rewind: 0, pointer: false, contrast: '.nav-back' });
+      var ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);
+      var edge = null;
+      if ((ios || /[?&]pin(=|&|$)/.test(location.search)) && !/[?&]pin=off/.test(location.search)) {
+        // iPhone Safari paints nothing sticky outside the page area, and fills the strip under the status bar from the page background:
+        // so the background becomes a gradient of the header picture's top-edge colours, and the status bar looks like part of the header.
+        var root = document.documentElement;
+        edge = function (bottom, top) {
+          root.style.background = 'linear-gradient(to right,' + top.map(function (c, i) { return 'rgb(' + c.join(',') + ') ' + Math.round(i * 100 / (top.length - 1)) + '%'; }).join(',') + ')';
+        };
+      }
+      window.initPs2Field(canvas, { count: 150, speed: 1, softness: 0.6, shadowMap: 1024, warp: 0, rewind: 0, pointer: false, contrast: '.nav-back', edge: edge, topAt: (480 - 68) / 2 });
       return;
     }
     if (typeof neat === 'undefined' || typeof neat.NeatGradient === 'undefined') {
