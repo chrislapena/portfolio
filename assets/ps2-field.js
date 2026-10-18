@@ -243,7 +243,7 @@ window.initPs2Field = function (canvas, options) {
   var edgeN = 0, lastScrollT = -1e9, drawFlip = false;
   if (o.pin || o.edge) window.addEventListener('scroll', function () { lastScrollT = performance.now(); }, { passive: true });
   function sampleEdge() {
-    var w = rt.width, rows = 4, buf = new Uint8Array(w * rows * 4), stops = [], N = 7;
+    var w = rt.width, rows = 4, buf = new Uint8Array(w * rows * 4), stops = [], N = 24;
     renderer.readRenderTargetPixels(rt, 0, 0, w, rows, buf);
     var bufTop = new Uint8Array(w * rows * 4);
     renderer.readRenderTargetPixels(rt, 0, Math.max(0, rt.height - rows), w, rows, bufTop);
@@ -255,7 +255,28 @@ window.initPs2Field = function (canvas, options) {
       out.push(c);
     }
     return out; };
-    o.edge(colours(buf), colours(bufTop));
+    var band = null;
+    if (PIN && vpH) {
+      /* the strip of picture just above the screen's top edge (that is what a status bar over the page would show), as a small soft image: BAND_W x BAND_H pixels,
+         brightness matched to what the soft pass makes of it */
+      var BAND_CSS = 70, BAND_W = 28, BAND_H = 7, chH = vpH + OVER + BLEED, sc = rt.height / chH;
+      var y0 = Math.max(0, Math.floor((OVER - BAND_CSS) * sc)), y1 = Math.max(y0 + 1, Math.floor(OVER * sc)), bh = y1 - y0;
+      var bb = new Uint8Array(w * bh * 4);
+      renderer.readRenderTargetPixels(rt, 0, rt.height - y1, w, bh, bb);     /* GL rows count from the bottom */
+      var out = new Uint8ClampedArray(BAND_W * BAND_H * 4);
+      for (var by = 0; by < BAND_H; by++) for (var bx = 0; bx < BAND_W; bx++) {
+        var xa = Math.floor(bx * w / BAND_W), xb = Math.max(xa + 1, Math.floor((bx + 1) * w / BAND_W)), ya = Math.floor(by * bh / BAND_H), yb = Math.max(ya + 1, Math.floor((by + 1) * bh / BAND_H)), r2 = 0, g2 = 0, b2 = 0, n2 = 0;
+        for (var yy = ya; yy < yb; yy++) for (var xx = xa; xx < xb; xx++) {
+          var q2 = ((bh - 1 - yy) * w + xx) * 4;                               /* image row 0 is the top, GL row 0 is the bottom */
+          r2 += bb[q2]; g2 += bb[q2 + 1]; b2 += bb[q2 + 2]; n2++;
+        }
+        var o4 = (by * BAND_W + bx) * 4;
+        [r2 / n2, g2 / n2, b2 / n2].forEach(function (v, k) { out[o4 + k] = Math.round(255 * Math.pow(Math.min(1, v / 255 * 1.16), 0.9) * (1 - o.tint)); });
+        out[o4 + 3] = 255;
+      }
+      band = { w: BAND_W, h: BAND_H, data: out };
+    }
+    o.edge(colours(buf), colours(bufTop), band);
   }
 
   function draw() {

@@ -1417,7 +1417,7 @@ if (!prefersReducedMotion) {
 
 <!-- PS2 theme background (Three.js, formerly Block Field): drifting, softly lit blocks that dissolve as they near the camera. The code lives in
      assets/ps2-field.js (shared with the case-study headers); it draws on the hero canvas when BG_THEME is 'ps2'. Tweak the options here. -->
-<script src="assets/ps2-field.js?v=12"></script>
+<script src="assets/ps2-field.js?v=13"></script>
 <script>
   if (window.BG_THEME === 'ps2') {
     var ps2Ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);   // iPhone / iPad (Safari's bars are what this is about)
@@ -1431,7 +1431,7 @@ if (!prefersReducedMotion) {
       pin: ps2Pin,                                   // the picture draws as page content (pinned with CSS position: sticky) so it can run behind iPhone Safari's bars; on by default on iPhone/iPad; ?pin=off turns it off, ?pin=1 uses the script-pinned version
       edge: !ps2Pin ? null : (function () {                           // iPhone Safari paints nothing fixed or sticky outside the page area (the strip under the status bar, the strip behind the
         var root = document.documentElement, strip = document.querySelector('.strip');   // bottom bar), and fills them from ordinary page content. So: the page background is a gradient
-        var bottom = null, top = null, edgeWrap = null, edgeEl = null;                   // of the picture's TOP edge colours (it shows in the status bar strip), and a small
+        var bottom = null, top = null, bandUrl = null, edgeWrap = null, edgeEl = null, bandCv = null;                   // of the picture's TOP edge colours (it shows in the status bar strip), and a small
         var pinned = true;                                                               // gradient of its BOTTOM edge colours sits just below the screen (it shows behind the bottom bar).
         var stripTopDoc = 0;
         function measure() { if (strip) stripTopDoc = strip.getBoundingClientRect().top + window.pageYOffset; }
@@ -1466,7 +1466,10 @@ if (!prefersReducedMotion) {
           edgeEl.style.transform = 'translate3d(0,' + Math.round(window.pageYOffset + window.innerHeight - 40) + 'px,0)';   // starts 40px above the screen's bottom edge, under the picture (cheap: compositor only)
           if (appliedStamp === colourStamp && Math.abs(q - lastQ) < 0.02 && !((q === 0 || q === 1) && q !== lastQ)) return;   // repainting the page background on every scroll event is what makes scrolling stutter
           lastQ = q; appliedStamp = colourStamp;
-          root.style.background = grad(top, q);        // status bar strip (vertically uniform, so the page background repeating above the page is invisible)
+          if (bandUrl) {                               // status bar strip: the soft image of the picture just above the screen, repeated so its bottom edge meets the top of the page;
+            var veil = 'linear-gradient(rgba(35,35,35,' + q.toFixed(3) + '),rgba(35,35,35,' + q.toFixed(3) + '))';   // fading to the dark Selected Works colour as that comes in
+            root.style.background = veil + ',url(' + bandUrl + ') 0 0 / 100% 70px repeat';
+          } else root.style.background = grad(top, q);
           edgeEl.style.background = grad(bottom, q);
           var cv = document.getElementById('hero-gradient');
           if (cv) { cv.style.opacity = String(1 - q); cv.style.visibility = q >= 0.995 ? 'hidden' : 'visible'; }   // the picture steps aside as Selected Works comes in
@@ -1475,7 +1478,16 @@ if (!prefersReducedMotion) {
         window.addEventListener('resize', function () { measure(); apply(); });
         window.addEventListener('load', function () { measure(); apply(); });
         measure();
-        return function (b, t) { bottom = b; top = t; colourStamp++; apply(); };
+        return function (b, t, band) {
+          bottom = b; top = t;
+          if (band) {
+            if (!bandCv) bandCv = document.createElement('canvas');
+            bandCv.width = band.w; bandCv.height = band.h;
+            bandCv.getContext('2d').putImageData(new ImageData(band.data, band.w, band.h), 0, 0);
+            try { bandUrl = bandCv.toDataURL('image/png'); } catch (e) { bandUrl = null; }
+          }
+          colourStamp++; apply();
+        };
       })(),
       warp: 11,                                      // extra speed multiples while scrolling down
       rewind: 1.6                                    // slow-down / pull-back while scrolling up
