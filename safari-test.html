@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Safari bottom test</title>
+<style>
+  html { background: #000; }
+  body { margin: 0; min-height: 300vh; font: 600 14px/1.35 -apple-system, system-ui, sans-serif; color: #fff; }
+  .bar { position: fixed; top: 0; width: 33.3333vw; }
+  /* A: the full-height viewport unit */
+  #a { left: 0; height: 100lvh; background: #e0245e; }
+  /* B: the normal fixed box, but pushed 160px past the bottom */
+  #b { left: 33.3333vw; bottom: -160px; height: auto; background: #1da462; }
+  /* C: fixed, 100% tall plus 200px */
+  #c { left: 66.6666vw; height: calc(100% + 200px); background: #2f6bff; }
+  .tag { position: fixed; left: 0; right: 0; top: 70px; padding: 0 10px; text-shadow: 0 1px 2px #000; }
+  .tag b { display: block; font-size: 18px; margin-bottom: 4px; }
+  .probe { position: fixed; left: 0; top: 0; width: 1px; visibility: hidden; }
+  #out { position: fixed; left: 8px; right: 8px; top: 230px; background: rgba(0,0,0,.72); border-radius: 12px; padding: 12px; z-index: 5; font-weight: 500; white-space: pre-wrap; }
+  .bottomline { position: fixed; left: 0; right: 0; bottom: 0; height: 4px; background: #fff; z-index: 6; }
+</style></head><body>
+<div class="bar" id="a"></div><div class="bar" id="b"></div><div class="bar" id="c"></div>
+<div class="tag"><b>Safari bottom test</b>Left bar = 100lvh. Middle = pushed 160px past the bottom. Right = 100% + 200px. Take a screenshot with the bottom bar visible, then scroll down a little and take another.</div>
+<div id="out">measuring…</div><div class="bottomline"></div>
+<div class="probe" id="plvh" style="height:100lvh"></div><div class="probe" id="psvh" style="height:100svh"></div><div class="probe" id="pdvh" style="height:100dvh"></div><div class="probe" id="ppct" style="height:100%"></div>
+<div class="probe" id="psb" style="height:env(safe-area-inset-bottom,0px)"></div>
+<script>
+  function report() {
+    var h = function (id) { return Math.round(document.getElementById(id).getBoundingClientRect().height * 10) / 10; };
+    var vv = window.visualViewport;
+    document.getElementById('out').textContent =
+      'innerHeight ' + innerHeight + '\n' +
+      'clientHeight ' + document.documentElement.clientHeight + '\n' +
+      'visualViewport.height ' + (vv ? Math.round(vv.height * 10) / 10 : 'n/a') + '\n' +
+      '100lvh ' + h('plvh') + '   100svh ' + h('psvh') + '   100dvh ' + h('pdvh') + '\n' +
+      'fixed 100% ' + h('ppct') + '\n' +
+      'safe-area bottom ' + h('psb') + '\n' +
+      'screen.height ' + screen.height + '   scrollY ' + Math.round(scrollY) + '\n' +
+      'standalone ' + (navigator.standalone === true) + '\n' +
+      navigator.userAgent.replace(/.*(CPU[^)]*).*/, '$1');
+  }
+  report(); addEventListener('resize', report); addEventListener('scroll', report, { passive: true });
+  if (window.visualViewport) { visualViewport.addEventListener('resize', report); visualViewport.addEventListener('scroll', report); }
+</script></body></html>
