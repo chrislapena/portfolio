@@ -97,6 +97,12 @@
   }
   /* PS2 theme: no watermark to hide, so the canvas is exactly the viewport */
   .hero-gradient-canvas.bf { height: 100%; background: #05070d; }
+  /* iPhone Safari: its bottom bar floats over the page, and a fixed layer sized 100% stops above it, leaving the page's black background showing
+     beside the bar. 100lvh (the full-height viewport) runs the animated background all the way to the bottom of the screen. Desktop is unchanged
+     (there 100lvh equals 100%). */
+  @supports (height: 100lvh) {
+    .hero-gradient-canvas.bf { height: 100lvh; }
+  }
 
   .hero-inner {
     width: 100%;
@@ -268,6 +274,10 @@
     z-index: -1;
     background: #232323;
     opacity: var(--works-bg, 0);
+  }
+  /* same fix for the dark backdrop: it must also reach the very bottom of an iPhone screen */
+  @supports (height: 100lvh) {
+    .works::before { inset: 0 0 auto 0; height: 100lvh; }
   }
   .works .wrap {
     max-width: none;
