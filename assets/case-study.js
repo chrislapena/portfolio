@@ -19,42 +19,7 @@
     if (!canvas || canvas.__navGradient) return;
     if (NAV_THEME === 'ps2' && window.THREE && window.initPs2Field) {
       // a calm strip: fewer blocks, a smaller shadow map, no pointer tilt and no scroll rush
-      var ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);
-      var edge = null;
-      if ((ios || /[?&]pin(=|&|$)/.test(location.search)) && !/[?&]pin=off/.test(location.search)) {
-        // iPhone Safari paints nothing sticky outside the page area, and fills the strip under the status bar from the page background:
-        // so the background becomes a gradient of the header picture's top-edge colours, and the status bar looks like part of the header.
-        // Safari only shows that page background where the page itself has room, so the page starts with a 70px margin on top and opens scrolled past it
-        // (the header, which is sticky, then sits exactly where it always did).
-        var root = document.documentElement, PAD = 70;
-        root.classList.add('top-pad');
-        var land = function () { if (!location.hash && window.pageYOffset < PAD) window.scrollTo(0, PAD); };
-        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-        land(); window.addEventListener('load', land); setTimeout(land, 300);
-        // the sticky header itself is not painted up there, so a thin copy of its top edge rides along just above the screen (moved with the scroll, behind the real header)
-        var strip = document.createElement('div');
-        strip.setAttribute('aria-hidden', 'true');
-        strip.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:' + PAD + 'px;z-index:29;pointer-events:none;will-change:transform;';
-        document.body.insertBefore(strip, document.body.firstChild);
-        var moveStrip = function () { strip.style.transform = 'translate3d(0,' + (Math.round(window.pageYOffset) - PAD + 1) + 'px,0)'; };
-        moveStrip(); window.addEventListener('scroll', moveStrip, { passive: true });
-        var idle = 0;   // never rest inside the top band (it would show as an extra bar above the header): settle back to the header
-        window.addEventListener('scroll', function () {
-          clearTimeout(idle);
-          idle = setTimeout(function () {
-            if (window.pageYOffset < PAD - 1) {
-              window.scrollTo({ top: PAD, behavior: 'smooth' });
-              setTimeout(function () { if (window.pageYOffset < PAD - 1) window.scrollTo(0, PAD); }, 500);
-            }
-          }, 180);
-        }, { passive: true });
-        edge = function (bottom, top) {
-          var g = 'linear-gradient(to right,' + top.map(function (c, i) { return 'rgb(' + c.join(',') + ') ' + Math.round(i * 100 / (top.length - 1)) + '%'; }).join(',') + ')';
-          strip.style.background = g;
-          root.style.background = g + ' 0 0 / 100% 70px repeat-y';
-        };
-      }
-      window.initPs2Field(canvas, { count: 150, speed: 1, softness: 0.6, shadowMap: 1024, warp: 0, rewind: 0, pointer: false, contrast: '.nav-back', edge: edge, topAt: (480 - 68) / 2 });
+      window.initPs2Field(canvas, { count: 150, speed: 1, softness: 0.6, shadowMap: 1024, warp: 0, rewind: 0, pointer: false, contrast: '.nav-back' });
       return;
     }
     if (typeof neat === 'undefined' || typeof neat.NeatGradient === 'undefined') {
