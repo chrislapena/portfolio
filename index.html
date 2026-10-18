@@ -1417,7 +1417,7 @@ if (!prefersReducedMotion) {
 
 <!-- PS2 theme background (Three.js, formerly Block Field): drifting, softly lit blocks that dissolve as they near the camera. The code lives in
      assets/ps2-field.js (shared with the case-study headers); it draws on the hero canvas when BG_THEME is 'ps2'. Tweak the options here. -->
-<script src="assets/ps2-field.js?v=10"></script>
+<script src="assets/ps2-field.js?v=12"></script>
 <script>
   if (window.BG_THEME === 'ps2') {
     var ps2Ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);   // iPhone / iPad (Safari's bars are what this is about)
@@ -1433,9 +1433,11 @@ if (!prefersReducedMotion) {
         var root = document.documentElement, strip = document.querySelector('.strip');   // bottom bar), and fills them from ordinary page content. So: the page background is a gradient
         var bottom = null, top = null, edgeWrap = null, edgeEl = null;                   // of the picture's TOP edge colours (it shows in the status bar strip), and a small
         var pinned = true;                                                               // gradient of its BOTTOM edge colours sits just below the screen (it shows behind the bottom bar).
-        function worksP() {                          // how far the dark Selected Works backdrop has come in (0 to 1), the same formula that drives the backdrop itself
+        var stripTopDoc = 0;
+        function measure() { if (strip) stripTopDoc = strip.getBoundingClientRect().top + window.pageYOffset; }
+        function worksP() {                          // how far the dark Selected Works backdrop has come in (0 to 1): the same formula that drives the backdrop, without reading the layout on every scroll event
           if (!strip) return 0;
-          return Math.max(0, Math.min(1, 1 - strip.getBoundingClientRect().top / (window.innerHeight * 0.8)));
+          return Math.max(0, Math.min(1, 1 - (stripTopDoc - window.pageYOffset) / (window.innerHeight * 0.8)));
         }
         function mix(c, p) { return c.map(function (v) { return Math.round(v + (35 - v) * p); }); }
         function grad(stops, p) {
@@ -1456,21 +1458,24 @@ if (!prefersReducedMotion) {
           fitWrap(); window.addEventListener('resize', fitWrap); window.addEventListener('load', fitWrap);
           if (window.ResizeObserver) new ResizeObserver(fitWrap).observe(document.body);
         }
+        var lastQ = -1, colourStamp = 0, appliedStamp = -1;
         function apply() {
           if (!bottom) return;
-          var p = worksP();
-          root.style.background = grad(top, p);        // status bar strip (vertically uniform, so the page background repeating above the page is invisible)
-          if (pinned) {
-            ensureStrip();
-            edgeEl.style.background = grad(bottom, p);
-            edgeEl.style.transform = 'translate3d(0,' + Math.round(window.pageYOffset + window.innerHeight - 40) + 'px,0)';   // starts 40px above the screen's bottom edge, under the picture
-            var cv = document.getElementById('hero-gradient');
-            if (cv) { cv.style.opacity = String(1 - p); cv.style.visibility = p >= 0.995 ? 'hidden' : 'visible'; }   // the picture steps aside as Selected Works comes in
-          }
+          var q = Math.max(0, Math.min(1, worksP() * 2.2));      // the strips and the picture outside the page finish fading at about 45% of the way in, so no faint remnant lingers at the top
+          ensureStrip();
+          edgeEl.style.transform = 'translate3d(0,' + Math.round(window.pageYOffset + window.innerHeight - 40) + 'px,0)';   // starts 40px above the screen's bottom edge, under the picture (cheap: compositor only)
+          if (appliedStamp === colourStamp && Math.abs(q - lastQ) < 0.02 && !((q === 0 || q === 1) && q !== lastQ)) return;   // repainting the page background on every scroll event is what makes scrolling stutter
+          lastQ = q; appliedStamp = colourStamp;
+          root.style.background = grad(top, q);        // status bar strip (vertically uniform, so the page background repeating above the page is invisible)
+          edgeEl.style.background = grad(bottom, q);
+          var cv = document.getElementById('hero-gradient');
+          if (cv) { cv.style.opacity = String(1 - q); cv.style.visibility = q >= 0.995 ? 'hidden' : 'visible'; }   // the picture steps aside as Selected Works comes in
         }
         window.addEventListener('scroll', apply, { passive: true });
-        window.addEventListener('resize', apply);
-        return function (b, t) { bottom = b; top = t; apply(); };
+        window.addEventListener('resize', function () { measure(); apply(); });
+        window.addEventListener('load', function () { measure(); apply(); });
+        measure();
+        return function (b, t) { bottom = b; top = t; colourStamp++; apply(); };
       })(),
       warp: 11,                                      // extra speed multiples while scrolling down
       rewind: 1.6                                    // slow-down / pull-back while scrolling up

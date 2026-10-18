@@ -168,11 +168,17 @@ window.initPs2Field = function (canvas, options) {
      and BLEED px below, shifted with the scroll position so it looks fixed. The camera is told the picture is the screen-sized window in the middle of
      that taller frame, so the part on screen looks exactly like the normal fixed canvas, and the extra rows just continue the scene. */
   var PIN = !!o.pin, STICKY = o.pin === 'sticky', OVER = 140, BLEED = 200, pinWrap = null, vpH = 0;
+  var pinW = 0, pinReady = false;
   function pinFit() {
+    /* Safari's toolbar sliding in and out changes innerHeight by a few dozen px; re-allocating the drawing surface each time makes scrolling stutter,
+       so small height changes are ignored (the picture is taller than the screen anyway). A width change (rotation) refits properly. */
+    if (vpH && pinW === window.innerWidth && Math.abs(window.innerHeight - vpH) < 160) { pinWrap.style.height = Math.max(document.documentElement.scrollHeight, vpH + OVER + BLEED) + 'px'; return; }
+    pinW = window.innerWidth;
     vpH = window.innerHeight;
     pinWrap.style.height = Math.max(document.documentElement.scrollHeight, vpH + OVER + BLEED) + 'px';
     canvas.style.top = -OVER + 'px';   /* absolute: where it sits; sticky: the offset it holds while scrolling */
     canvas.style.height = (vpH + OVER + BLEED) + 'px';
+    if (pinReady) layout();            /* the resize listener for layout() was registered first and has already run with the old height, so redo it now */
   }
   function pinMove() { if (STICKY) return; canvas.style.transform = 'translate3d(0,' + Math.round(window.pageYOffset) + 'px,0)'; }
   function pinSetup() {
@@ -188,7 +194,8 @@ window.initPs2Field = function (canvas, options) {
     canvas.style.display = 'block';
     if (STICKY) canvas.style.marginTop = -OVER + 'px';   /* its natural spot is already OVER px above the screen top, so sticking never shifts the picture */
     else canvas.style.willChange = 'transform';
-    pinFit(); pinMove();
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5) * 0.8);   /* the taller picture would cost ~40% more per frame; a slightly lower resolution (it is soft and grainy anyway) keeps it as light as before */
+    pinFit(); pinMove(); pinReady = true;
     window.addEventListener('scroll', pinMove, { passive: true });
     window.addEventListener('resize', pinFit);
     window.addEventListener('load', pinFit);
@@ -198,7 +205,8 @@ window.initPs2Field = function (canvas, options) {
   function layout() {
     var w = canvas.clientWidth || window.innerWidth, h = canvas.clientHeight || window.innerHeight, pr = renderer.getPixelRatio();
     renderer.setSize(w, h, false);
-    var rw = Math.max(2, Math.floor(w * pr * SOFTNESS)), rh = Math.max(2, Math.floor(h * pr * SOFTNESS));
+    var sf = PIN && vpH ? SOFTNESS * Math.sqrt(vpH / h) : SOFTNESS;   /* pin mode: same number of picture pixels as the screen-sized version */
+    var rw = Math.max(2, Math.floor(w * pr * sf)), rh = Math.max(2, Math.floor(h * pr * sf));
     rt.setSize(rw, rh);
     pass.uniforms.res.value.set(rw, rh);
     if (PIN && vpH) {
@@ -232,7 +240,8 @@ window.initPs2Field = function (canvas, options) {
   }
 
   /* Colours along the bottom edge of the picture, matched to what the soft pass makes of them (about +16% brightness, a 0.9 gamma and the tint). */
-  var edgeN = 0;
+  var edgeN = 0, lastScrollT = -1e9, drawFlip = false;
+  if (o.pin || o.edge) window.addEventListener('scroll', function () { lastScrollT = performance.now(); }, { passive: true });
   function sampleEdge() {
     var w = rt.width, rows = 4, buf = new Uint8Array(w * rows * 4), stops = [], N = 7;
     renderer.readRenderTargetPixels(rt, 0, 0, w, rows, buf);
@@ -273,7 +282,7 @@ window.initPs2Field = function (canvas, options) {
     renderer.render(scene, camera);
     if (PIN) pinMove();
     if (contrastEl && ++sampleN % 8 === 1) sampleContrast();
-    if (o.edge && ++edgeN % 15 === 1) sampleEdge();
+    if (o.edge && ++edgeN % 15 === 1 && performance.now() - lastScrollT > 300) sampleEdge();   /* reading pixels back stalls the graphics chip: never during a swipe */
     renderer.setRenderTarget(null);
     pass.uniforms.time.value = t % 100;
     renderer.render(quadScene, quadCam);
@@ -314,7 +323,8 @@ window.initPs2Field = function (canvas, options) {
           m.y = rnd(-SPREAD, SPREAD);
         }
       }
-      draw();
+      /* pin mode: while the page is scrolling, redraw the picture every other frame (it is soft and drifts slowly) so the scroll itself gets the full frame budget */
+      if (!(PIN && performance.now() - lastScrollT < 250 && (drawFlip = !drawFlip))) draw();
     }
     requestAnimationFrame(frame);
   }
