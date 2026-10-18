@@ -1451,7 +1451,7 @@ if (!prefersReducedMotion) {
 
 <!-- PS2 theme background (Three.js, formerly Block Field): drifting, softly lit blocks that dissolve as they near the camera. The code lives in
      assets/ps2-field.js (shared with the case-study headers); it draws on the hero canvas when BG_THEME is 'ps2'. Tweak the options here. -->
-<script src="assets/ps2-field.js?v=16"></script>
+<script src="assets/ps2-field.js?v=17"></script>
 <script>
   if (window.BG_THEME === 'ps2') {
     var ps2Ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);   // iPhone / iPad (Safari's bars are what this is about)
@@ -1504,6 +1504,8 @@ if (!prefersReducedMotion) {
             var veil = 'linear-gradient(rgba(35,35,35,' + q.toFixed(3) + '),rgba(35,35,35,' + q.toFixed(3) + '))';   // fading to the dark Selected Works colour as that comes in
             root.style.background = veil + ',url(' + bandUrl + ') 0 0 / 100% 70px repeat';
           } else root.style.background = grad(top, q);
+          var avg = [0, 1, 2].map(function (k) { return bottom.reduce(function (t, c) { return t + c[k]; }, 0) / bottom.length; });
+          root.style.backgroundColor = 'rgb(' + mix(avg, q).join(',') + ')';   // Safari fills the strip behind the bottom bar with the page's background COLOUR; without one it falls back to black (so past the footer it is now the footer grey)
           edgeEl.style.background = grad(bottom, q);
           var cv = document.getElementById('hero-gradient');
           if (cv) { cv.style.opacity = String(1 - q); cv.style.visibility = q >= 0.995 ? 'hidden' : 'visible'; }   // the picture steps aside as Selected Works comes in
