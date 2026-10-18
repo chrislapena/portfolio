@@ -8,6 +8,9 @@
 //   contrast   CSS selector of an element to keep readable: it gets the class "on-dark" while the picture behind it is dark
 //   tint       black tint over the whole field, 0 = none, 0.12 = a small tint, 0.5 = half way to black
 //   dark       how many of the two dark block colours are in the mix, 1 = default
+//   edge       a function; a few times a second it receives the colours along the very bottom edge of the picture (an array of 7 [r,g,b] values,
+//              left to right, 0-255, as they look on screen). The home page uses it to colour the page background, which iPhone Safari shows
+//              behind its floating bottom bar (it will not paint fixed layers there)
 window.initPs2Field = function (canvas, options) {
   if (!canvas || !window.THREE || canvas.__ps2) return;
   canvas.__ps2 = true;
@@ -190,6 +193,20 @@ window.initPs2Field = function (canvas, options) {
     contrastEl.classList.toggle('on-dark', onDark);
   }
 
+  /* Colours along the bottom edge of the picture, matched to what the soft pass makes of them (about +16% brightness, a 0.9 gamma and the tint). */
+  var edgeN = 0;
+  function sampleEdge() {
+    var w = rt.width, rows = 4, buf = new Uint8Array(w * rows * 4), stops = [], N = 7;
+    renderer.readRenderTargetPixels(rt, 0, 0, w, rows, buf);
+    for (var i = 0; i < N; i++) {
+      var x0 = Math.floor(i * w / N), x1 = Math.max(x0 + 1, Math.floor((i + 1) * w / N)), r = 0, g = 0, b = 0, n = 0;
+      for (var y = 0; y < rows; y++) for (var x = x0; x < x1; x++) { var q = (y * w + x) * 4; r += buf[q]; g += buf[q + 1]; b += buf[q + 2]; n++; }
+      var c = [r / n, g / n, b / n].map(function (v) { return Math.round(255 * Math.pow(Math.min(1, v / 255 * 1.16), 0.9) * (1 - o.tint)); });
+      stops.push(c);
+    }
+    o.edge(stops);
+  }
+
   function draw() {
     for (var i = 0; i < boxes.length; i++) {
       var b = boxes[i];
@@ -213,6 +230,7 @@ window.initPs2Field = function (canvas, options) {
     renderer.setRenderTarget(rt);
     renderer.render(scene, camera);
     if (contrastEl && ++sampleN % 8 === 1) sampleContrast();
+    if (o.edge && ++edgeN % 15 === 1) sampleEdge();
     renderer.setRenderTarget(null);
     pass.uniforms.time.value = t % 100;
     renderer.render(quadScene, quadCam);

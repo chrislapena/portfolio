@@ -97,12 +97,6 @@
   }
   /* PS2 theme: no watermark to hide, so the canvas is exactly the viewport */
   .hero-gradient-canvas.bf { height: 100%; background: #05070d; }
-  /* iPhone Safari: its bottom bar floats over the page, and a fixed layer sized 100% stops above it, leaving the page's black background showing
-     beside the bar. 100lvh (the full-height viewport) runs the animated background all the way to the bottom of the screen. Desktop is unchanged
-     (there 100lvh equals 100%). */
-  @supports (height: 100lvh) {
-    .hero-gradient-canvas.bf { height: 100lvh; }
-  }
 
   .hero-inner {
     width: 100%;
@@ -274,10 +268,6 @@
     z-index: -1;
     background: #232323;
     opacity: var(--works-bg, 0);
-  }
-  /* same fix for the dark backdrop: it must also reach the very bottom of an iPhone screen */
-  @supports (height: 100lvh) {
-    .works::before { inset: 0 0 auto 0; height: 100lvh; }
   }
   .works .wrap {
     max-width: none;
@@ -1427,7 +1417,7 @@ if (!prefersReducedMotion) {
 
 <!-- PS2 theme background (Three.js, formerly Block Field): drifting, softly lit blocks that dissolve as they near the camera. The code lives in
      assets/ps2-field.js (shared with the case-study headers); it draws on the hero canvas when BG_THEME is 'ps2'. Tweak the options here. -->
-<script src="assets/ps2-field.js?v=5"></script>
+<script src="assets/ps2-field.js?v=7"></script>
 <script>
   if (window.BG_THEME === 'ps2') {
     window.initPs2Field(document.getElementById('hero-gradient'), {
@@ -1436,6 +1426,16 @@ if (!prefersReducedMotion) {
       near: 5, fade: 6,                              // blocks dissolve between near+fade and near units from the camera (smaller fade = quicker)
       softness: 0.7,                                 // render scale; lower = softer and cheaper
       tint: 0.4,                                     // black tint over the field: 0 = none, 0.4 = 40% toward black (the case-study headers keep the lighter default)
+      edge: function (stops) {                       // iPhone Safari shows the PAGE background behind its floating bottom bar (fixed layers stop above it), so the page
+        var root = document.documentElement, strip = document.querySelector('.strip');   // background follows the colours along the picture's bottom edge
+        var p = strip ? parseFloat(strip.style.getPropertyValue('--works-bg')) || 0 : 0;  // and fades to the dark Selected Works colour as that takes over
+        var d = 35;
+        var css = stops.map(function (c, i) {
+          var m = c.map(function (v) { return Math.round(v + (d - v) * p); });
+          return 'rgb(' + m.join(',') + ') ' + Math.round(i * 100 / (stops.length - 1)) + '%';
+        }).join(',');
+        root.style.background = 'linear-gradient(to right,' + css + ')';
+      },
       warp: 11,                                      // extra speed multiples while scrolling down
       rewind: 1.6                                    // slow-down / pull-back while scrolling up
     });
