@@ -637,3 +637,6 @@ html.theme-ps2 .nav-back.on-dark:focus-visible { color: var(--link); -webkit-tex
   .intro--cs3 .intro-right { padding-top: 32px; }
   .intro--cs3 .chips.chips-after-two { margin-top: 6px; }
 }
+
+/* iPhone/iPad: room above the header for the animation to show behind the status bar (see case-study.js) */
+html.top-pad body { margin-top: 70px; }

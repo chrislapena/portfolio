@@ -24,9 +24,15 @@
       if ((ios || /[?&]pin(=|&|$)/.test(location.search)) && !/[?&]pin=off/.test(location.search)) {
         // iPhone Safari paints nothing sticky outside the page area, and fills the strip under the status bar from the page background:
         // so the background becomes a gradient of the header picture's top-edge colours, and the status bar looks like part of the header.
-        var root = document.documentElement;
+        // Safari only shows that page background where the page itself has room, so the page starts with a 70px margin on top and opens scrolled past it
+        // (the header, which is sticky, then sits exactly where it always did).
+        var root = document.documentElement, PAD = 70;
+        root.classList.add('top-pad');
+        var land = function () { if (!location.hash && window.pageYOffset < PAD) window.scrollTo(0, PAD); };
+        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+        land(); window.addEventListener('load', land); setTimeout(land, 300);
         edge = function (bottom, top) {
-          root.style.background = 'linear-gradient(to right,' + top.map(function (c, i) { return 'rgb(' + c.join(',') + ') ' + Math.round(i * 100 / (top.length - 1)) + '%'; }).join(',') + ')';
+          root.style.background = 'linear-gradient(to right,' + top.map(function (c, i) { return 'rgb(' + c.join(',') + ') ' + Math.round(i * 100 / (top.length - 1)) + '%'; }).join(',') + ') 0 0 / 100% 70px repeat-y';
         };
       }
       window.initPs2Field(canvas, { count: 150, speed: 1, softness: 0.6, shadowMap: 1024, warp: 0, rewind: 0, pointer: false, contrast: '.nav-back', edge: edge, topAt: (480 - 68) / 2 });
