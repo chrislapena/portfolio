@@ -1417,7 +1417,7 @@ if (!prefersReducedMotion) {
 
 <!-- PS2 theme background (Three.js, formerly Block Field): drifting, softly lit blocks that dissolve as they near the camera. The code lives in
      assets/ps2-field.js (shared with the case-study headers); it draws on the hero canvas when BG_THEME is 'ps2'. Tweak the options here. -->
-<script src="assets/ps2-field.js?v=7"></script>
+<script src="assets/ps2-field.js?v=8"></script>
 <script>
   if (window.BG_THEME === 'ps2') {
     window.initPs2Field(document.getElementById('hero-gradient'), {
@@ -1426,6 +1426,7 @@ if (!prefersReducedMotion) {
       near: 5, fade: 6,                              // blocks dissolve between near+fade and near units from the camera (smaller fade = quicker)
       softness: 0.7,                                 // render scale; lower = softer and cheaper
       tint: 0.4,                                     // black tint over the field: 0 = none, 0.4 = 40% toward black (the case-study headers keep the lighter default)
+      pin: /[?&]pin(=|&|$)/.test(location.search),   // TEST SWITCH: add ?pin=1 to the address to try the picture running under iPhone Safari's bottom bar
       edge: function (stops) {                       // iPhone Safari shows the PAGE background behind its floating bottom bar (fixed layers stop above it), so the page
         var root = document.documentElement, strip = document.querySelector('.strip');   // background follows the colours along the picture's bottom edge
         var p = strip ? parseFloat(strip.style.getPropertyValue('--works-bg')) || 0 : 0;  // and fades to the dark Selected Works colour as that takes over

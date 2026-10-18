@@ -8,6 +8,9 @@
 //   contrast   CSS selector of an element to keep readable: it gets the class "on-dark" while the picture behind it is dark
 //   tint       black tint over the whole field, 0 = none, 0.12 = a small tint, 0.5 = half way to black
 //   dark       how many of the two dark block colours are in the mix, 1 = default
+//   pin        true = draw the picture as part of the scrolling page (not a fixed layer) and pin it in place with a little script, with extra picture
+//              above and below the screen. iPhone Safari (iOS 26) will not paint fixed layers under its floating bottom bar, but it does paint
+//              normal page content there, so this lets the animation run all the way to the bottom edge.
 //   edge       a function; a few times a second it receives the colours along the very bottom edge of the picture (an array of 7 [r,g,b] values,
 //              left to right, 0-255, as they look on screen). The home page uses it to colour the page background, which iPhone Safari shows
 //              behind its floating bottom bar (it will not paint fixed layers there)
@@ -160,13 +163,45 @@ window.initPs2Field = function (canvas, options) {
   var mx = 0, my = 0, tx = 0, ty = 0;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* Pin mode: the canvas lives in a wrapper that spans the whole page (clipped, so it adds no scroll room); it is taller than the screen by OVER px above
+     and BLEED px below, shifted with the scroll position so it looks fixed. The camera is told the picture is the screen-sized window in the middle of
+     that taller frame, so the part on screen looks exactly like the normal fixed canvas, and the extra rows just continue the scene. */
+  var PIN = !!o.pin, OVER = 140, BLEED = 200, pinWrap = null, vpH = 0;
+  function pinFit() {
+    vpH = window.innerHeight;
+    pinWrap.style.height = Math.max(document.documentElement.scrollHeight, vpH + OVER + BLEED) + 'px';
+    canvas.style.top = -OVER + 'px';
+    canvas.style.height = (vpH + OVER + BLEED) + 'px';
+  }
+  function pinMove() { canvas.style.transform = 'translate3d(0,' + Math.round(window.pageYOffset) + 'px,0)'; }
+  function pinSetup() {
+    pinWrap = document.createElement('div');
+    pinWrap.setAttribute('aria-hidden', 'true');
+    pinWrap.style.cssText = 'position:absolute;left:0;top:0;width:100%;overflow:hidden;pointer-events:none;z-index:-1;';
+    document.body.insertBefore(pinWrap, document.body.firstChild);
+    pinWrap.appendChild(canvas);
+    canvas.style.position = 'absolute';
+    canvas.style.left = '0';
+    canvas.style.width = '100%';
+    canvas.style.zIndex = 'auto';
+    canvas.style.willChange = 'transform';
+    pinFit(); pinMove();
+    window.addEventListener('scroll', pinMove, { passive: true });
+    window.addEventListener('resize', pinFit);
+    window.addEventListener('load', pinFit);
+    if (window.ResizeObserver) new ResizeObserver(pinFit).observe(document.body);
+  }
+
   function layout() {
     var w = canvas.clientWidth || window.innerWidth, h = canvas.clientHeight || window.innerHeight, pr = renderer.getPixelRatio();
     renderer.setSize(w, h, false);
     var rw = Math.max(2, Math.floor(w * pr * SOFTNESS)), rh = Math.max(2, Math.floor(h * pr * SOFTNESS));
     rt.setSize(rw, rh);
     pass.uniforms.res.value.set(rw, rh);
-    camera.aspect = w / h;
+    if (PIN && vpH) {
+      camera.aspect = w / vpH;
+      camera.setViewOffset(w, vpH, 0, -OVER, w, h);
+    } else camera.aspect = w / h;
     camera.updateProjectionMatrix();
     draw();
   }
@@ -229,6 +264,7 @@ window.initPs2Field = function (canvas, options) {
 
     renderer.setRenderTarget(rt);
     renderer.render(scene, camera);
+    if (PIN) pinMove();
     if (contrastEl && ++sampleN % 8 === 1) sampleContrast();
     if (o.edge && ++edgeN % 15 === 1) sampleEdge();
     renderer.setRenderTarget(null);
@@ -285,6 +321,7 @@ window.initPs2Field = function (canvas, options) {
   }
 
   build(o.count);
+  if (PIN) pinSetup();
   layout();
   requestAnimationFrame(frame);
 };
