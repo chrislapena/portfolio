@@ -679,6 +679,8 @@
   @media (max-width: 440px) { .hero .wrap.hero-inner { padding: 0 40px; } }
   /* phones: the hero text block sits 8px higher (the text is centred in the hero, so 8px less above and 8px more below moves it up 8px) */
   @media (max-width: 440px) { .hero { padding: 102px 0 78px; } }
+  /* phones: the headline is 36px (it shrinks a little on screens narrower than ~387px so the first line never runs off the edge) */
+  @media (max-width: 440px) { .headline { font-size: min(36px, 9.3vw); } }
 
   /* footer responsiveness: stack the contact block above the details once the two-column row no longer fits, then stack the details too on phones */
   @media (max-width: 1240px) {
