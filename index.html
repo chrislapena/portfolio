@@ -1531,6 +1531,43 @@ if (!prefersReducedMotion) {
   }
 </script>
 
+<script>
+  // Warm the case studies: once the home page has settled, quietly fetch each case study's page and its first images so opening one is instant;
+  // hovering or touching a card warms a few more. Skipped on data-saver / very slow connections.
+  (function () {
+    var c = navigator.connection || {};
+    if (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')) return;
+    var L = {
+      'trending-categories': ['bg-hero.jpg', 'hero-1.png', 'bg-problems.jpg', 'home-1.png'],
+      'chain-data-transformations': ['hero-bg-m.jpg', 'band-v3.jpg', 'hero-mock-m-v3.png', 'blk-01-v2.jpg', 'blk-02-v2.jpg'],
+      'home-page-redesign': ['hero-bg.jpg', 'hero-mock.png', 'blk-01.jpg', 'blk-02.jpg'],
+      'ai-personas': ['hero-bg.jpg', 'hero-orb.png', 'blk-01-v2.jpg', 'blk-02-v2.jpg'],
+      'social-queues': ['hero-bg-v2.jpg', 'hero-mock.png', 'blk-01-v2.jpg', 'blk-02-v2.jpg']
+    };
+    var DIR = { 'trending-categories': 1, 'chain-data-transformations': 2, 'home-page-redesign': 3, 'ai-personas': 4, 'social-queues': 5 };
+    var held = [], done = {};
+    function warm(slug, from, to, href) {
+      var list = L[slug]; if (!list) return;
+      if (from === 0 && !done[slug + '#p']) { done[slug + '#p'] = 1; var l = document.createElement('link'); l.rel = 'prefetch'; l.href = href || slug; document.head.appendChild(l); }
+      list.slice(from, to).forEach(function (f) {
+        var u = 'assets/case-study-' + DIR[slug] + '/' + f;
+        if (done[u]) return; done[u] = 1;
+        var im = new Image(); im.decoding = 'async'; im.src = u; held.push(im);   // kept referenced so the browser holds it in memory
+      });
+    }
+    function all() {
+      Array.prototype.forEach.call(document.querySelectorAll('a.card-link'), function (a) { var s = slugOf(a); if (s) warm(s, 0, s === 'chain-data-transformations' ? 3 : 2, a.getAttribute('href')); });   // its hero is a desktop band or a phone mock, so both
+    }          // hero pair of every case study
+    function start() { (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(all, { timeout: 4000 }); }
+    window.addEventListener('load', function () { setTimeout(start, 2500); });
+    var BY_NUM = {}; Object.keys(DIR).forEach(function (s) { BY_NUM[DIR[s]] = s; });
+    function slugOf(a) { var m = a && a.getAttribute('href'); if (!m) return null; if (L[m]) return m; var n = /case-study-(\d)/.exec(m); return n ? BY_NUM[n[1]] : null; }
+    function hot(e) { var a = e.target.closest && e.target.closest('a.card-link, .card a'); var s = slugOf(a); if (s) warm(s, 0, L[s].length, a.getAttribute('href')); }
+    document.addEventListener('pointerover', hot, { passive: true });
+    document.addEventListener('touchstart', hot, { passive: true });
+  })();
+</script>
+
 <script src="assets/click-sound.js?v=20261014b" defer></script>
 </body>
 </html>
