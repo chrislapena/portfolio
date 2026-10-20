@@ -815,7 +815,10 @@
   <script>
     try {
       var nav = performance.getEntriesByType('navigation')[0];
-      var cameBack = (nav && nav.type === 'back_forward') || /case-study/.test(document.referrer);
+      // the welcome screen is for a fresh visit or a manual refresh; coming back from a case study (Back link, browser back, or any link within this site) skips it
+      var internal = false;
+      try { internal = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e2) {}
+      var cameBack = nav ? (nav.type !== 'reload' && (nav.type === 'back_forward' || internal)) : internal;
       if (cameBack) {
         document.getElementById('loader').remove();
         document.body.classList.remove('is-loading');
