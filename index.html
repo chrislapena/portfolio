@@ -192,17 +192,13 @@
   .warp.is-glitching { filter: none; transform: none; }   /* no warp and no slant: the glitch is the pixel bands (no colour edge either) */
   .warp.is-glitching .cx-main { filter: none; }
   #cx-word { overflow: visible; }   /* torn pieces may sit slightly outside the word's box */
-  /* hover the headline (mouse only): the glitched words ease into clean Alpha Lyrae. Both versions sit in one grid cell, so they overlap exactly and nothing moves. */
+  /* the hover effect (glitched words easing into clean Alpha Lyrae) is switched off: the clean layers stay hidden. Both versions sit in one grid cell. To bring it back, add: @media (hover: hover) { .headline:hover .hv-g { opacity: 0; } .headline:hover .hv-c { opacity: 1; } } */
   .hv, .warp.is-glitching.hv { display: inline-grid; vertical-align: -0.214em; }
   .hv.hv-turn { vertical-align: -0.203em; }
   .hv > * { grid-area: 1 / 1; vertical-align: baseline; }
   .hv-c { opacity: 0; transition: opacity .35s ease; pointer-events: none; }
   .hv-g { transition: opacity .35s ease; }
   .hv-turn > svg.hv-c { width: 3.386em; height: 0.906em; }
-  @media (hover: hover) {
-    .headline:hover .hv-g { opacity: 0; }
-    .headline:hover .hv-c { opacity: 1; }
-  }
   .glitch-word {
     display: inline-block;
     width: 3.386em;
