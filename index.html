@@ -674,15 +674,14 @@
     margin: 64px 0 0;
     font-family: 'Alpha Lyrae', 'Alexandria', sans-serif;
     font-size: 12px;
-    color: #6e6e6e;
-    opacity: 0.5;
+    color: #494949;   /* the old #6e6e6e at 50% opacity over the footer grey, as a solid colour */
     letter-spacing: -0.24px;
     white-space: nowrap;
   }
   .footer { padding-bottom: 28px; }
   .credit-plus { display: inline-block; width: 0.95em; height: 0.76em; vertical-align: -0.04em; margin: 0 0.15em; overflow: visible; }   /* bold, torn "+" */
-  .credit-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
-  .credit-link:hover, .credit-link:focus-visible { color: #fff; }
+  .credit-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; transition: color 0.2s ease; }
+  .credit-link:hover, .credit-link:focus-visible { color: #35b5ff; }   /* the same blue as the LinkedIn and email links */
 
 
   @media (max-width: 760px) {
@@ -732,6 +731,7 @@
     .card:hover, .card:focus-within { background: #232323; }
     .card:hover .card-media img, .card:focus-within .card-media img { transform: none; }
     .footer-col .value a:hover, .footer-col .value a:focus-visible { color: #fff; }
+    .credit-link:hover, .credit-link:focus-visible { color: inherit; }
 
     /* tapping a card: one single grey layer covers the card and bleeds 20px past it on every side. isolation makes the card its own stacking
        context, so the layer (z-index -1) sits above the card's own background (no second, differently-toned grey) and below its content. */
@@ -983,7 +983,7 @@
           </div>
         </div>
       </div>
-      <p class="footer-credit">Site designed and developed by me <svg class="credit-plus" viewBox="-110 -580 820 660" aria-hidden="true" focusable="false"><defs><clipPath id="plk"><path clip-rule="evenodd" d="M-300 -300h1200v1200h-1200zM-300 70h1200v80h-1200zM-300 330h1200v80h-1200z"/></clipPath><clipPath id="plb0"><rect x="-300" y="70" width="1200" height="80"/></clipPath><clipPath id="plb1"><rect x="-300" y="330" width="1200" height="80"/></clipPath></defs><g transform="scale(1,-1)"><path fill="currentColor" stroke="currentColor" stroke-width="46" stroke-linejoin="miter" clip-path="url(#plk)" d="M335 288H552V218H335V0H265V218H48V288H265V506H335Z"/><g clip-path="url(#plb0)"><path fill="currentColor" stroke="currentColor" stroke-width="46" stroke-linejoin="miter" transform="translate(70)" d="M335 288H552V218H335V0H265V218H48V288H265V506H335Z"/></g><g clip-path="url(#plb1)"><path fill="currentColor" stroke="currentColor" stroke-width="46" stroke-linejoin="miter" transform="translate(-55)" d="M335 288H552V218H335V0H265V218H48V288H265V506H335Z"/></g></g></svg> <a class="credit-link" href="https://github.com/chrislapena/portfolio" target="_blank" rel="noopener">View on Github</a></p>
+      <p class="footer-credit">Site designed and developed by me with Claude <svg class="credit-plus" viewBox="-110 -580 820 660" aria-hidden="true" focusable="false"><defs><clipPath id="plk"><path clip-rule="evenodd" d="M-300 -300h1200v1200h-1200zM-300 70h1200v80h-1200zM-300 330h1200v80h-1200z"/></clipPath><clipPath id="plb0"><rect x="-300" y="70" width="1200" height="80"/></clipPath><clipPath id="plb1"><rect x="-300" y="330" width="1200" height="80"/></clipPath></defs><g transform="scale(1,-1)"><path fill="currentColor" stroke="currentColor" stroke-width="46" stroke-linejoin="miter" clip-path="url(#plk)" d="M335 288H552V218H335V0H265V218H48V288H265V506H335Z"/><g clip-path="url(#plb0)"><path fill="currentColor" stroke="currentColor" stroke-width="46" stroke-linejoin="miter" transform="translate(70)" d="M335 288H552V218H335V0H265V218H48V288H265V506H335Z"/></g><g clip-path="url(#plb1)"><path fill="currentColor" stroke="currentColor" stroke-width="46" stroke-linejoin="miter" transform="translate(-55)" d="M335 288H552V218H335V0H265V218H48V288H265V506H335Z"/></g></g></svg> <a class="credit-link" href="https://github.com/chrislapena/portfolio" target="_blank" rel="noopener">View on Github</a></p>
     </div>
   </footer>
 
