@@ -5,6 +5,10 @@ Live at **https://chrislapena.com**
 
 A hand-built static site: plain HTML, CSS and JavaScript. There is no framework and no build step.
 
+## How it was made
+
+Designed in Figma first, then built by Chris together with Claude (Anthropic's AI assistant).
+
 ## What's in here
 
 - `index.html`: home page (animated hero, Selected Works, footer)
@@ -14,12 +18,6 @@ A hand-built static site: plain HTML, CSS and JavaScript. There is no framework 
 - `assets/case-study.css` and `assets/case-study.js`: shared case-study styles and behaviour
 - `assets/case-study-3/prototype.js`: the interactive prototype in Home Page Redesign
 - `fonts/`: Alpha Lyrae (SIL Open Font License, see below)
-
-## Things I enjoyed building
-
-- The glitched "complexity" in the headline, drawn from Alpha Lyrae's own pixel glyphs
-- A background that runs behind iPhone Safari's transparent status and bottom bars
-- A scroll snap between the hero and Selected Works
 
 ## Run it locally
 
