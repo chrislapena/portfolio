@@ -671,11 +671,7 @@
     flex-direction: column;
   }
   .footer-credit {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    margin: 0;
-    z-index: 2;
+    margin: 64px 0 0;
     font-family: 'Alpha Lyrae', 'Alexandria', sans-serif;
     font-size: 12px;
     color: #6e6e6e;
@@ -683,6 +679,10 @@
     letter-spacing: -0.24px;
     white-space: nowrap;
   }
+  .footer { padding-bottom: 28px; }
+  .credit-plus { display: inline-block; width: 0.95em; height: 0.76em; vertical-align: -0.04em; margin: 0 0.15em; overflow: visible; }   /* bold, torn "+" */
+  .credit-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .credit-link:hover, .credit-link:focus-visible { color: #fff; }
 
 
   @media (max-width: 760px) {
@@ -715,7 +715,7 @@
     .contact-clock-group { margin-top: 0; transform: none; }
   }
   @media (max-width: 760px) {
-    .footer { padding: 56px 0; }
+    .footer { padding: 56px 0 28px; }
     .footer .wrap { padding: 0 24px 0 80px; }   /* left edge stays at 80px, in line with the hero text and the cards */
     .footer-cols { flex-direction: column; gap: 28px; width: 100%; }
     .footer-cols-group { width: 100%; }
@@ -853,7 +853,6 @@
   <!-- HERO -->
   <section class="hero">
     <canvas id="hero-gradient" class="hero-gradient-canvas"></canvas>
-    <p class="footer-credit">Site designed and coded by Chris :D</p>
     <div class="wrap hero-inner">
       <div>
         <p class="eyebrow">I'm <b>Chris</b> - Lead Product Designer | Design Engineer</p>
@@ -984,6 +983,7 @@
           </div>
         </div>
       </div>
+      <p class="footer-credit">Site designed and developed by me <svg class="credit-plus" viewBox="-110 -580 820 660" aria-hidden="true" focusable="false"><defs><clipPath id="plk"><path clip-rule="evenodd" d="M-300 -300h1200v1200h-1200zM-300 70h1200v80h-1200zM-300 330h1200v80h-1200z"/></clipPath><clipPath id="plb0"><rect x="-300" y="70" width="1200" height="80"/></clipPath><clipPath id="plb1"><rect x="-300" y="330" width="1200" height="80"/></clipPath></defs><g transform="scale(1,-1)"><path fill="currentColor" stroke="currentColor" stroke-width="46" stroke-linejoin="miter" clip-path="url(#plk)" d="M335 288H552V218H335V0H265V218H48V288H265V506H335Z"/><g clip-path="url(#plb0)"><path fill="currentColor" stroke="currentColor" stroke-width="46" stroke-linejoin="miter" transform="translate(70)" d="M335 288H552V218H335V0H265V218H48V288H265V506H335Z"/></g><g clip-path="url(#plb1)"><path fill="currentColor" stroke="currentColor" stroke-width="46" stroke-linejoin="miter" transform="translate(-55)" d="M335 288H552V218H335V0H265V218H48V288H265V506H335Z"/></g></g></svg> <a class="credit-link" href="https://github.com/chrislapena/portfolio" target="_blank" rel="noopener">View on Github</a></p>
     </div>
   </footer>
 
