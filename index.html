@@ -802,21 +802,23 @@
     transform: translateY(6px);
     animation: loader-welcome-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.35s forwards;
   }
-  /* "Welcome!" glitches in: it shows clean, flickers through a few glitched frames (the same torn pixel bands as the headline's "complexity"), then settles on the heavy one */
-  .wl { display: inline-grid; }
+  /* "Welcome!" starts as the heavy glitch (same torn pixel bands as the headline's "complexity"), flickers through lighter glitch frames, and turns into the thin Italiana "Welcome!" */
+  .wl { display: inline-grid; justify-items: center; align-items: center; }
   .wl-f { grid-area: 1 / 1; width: 4.476em; height: 0.81em; overflow: visible; opacity: 0; color: #fff; animation-duration: 0.3s; animation-delay: 2.05s; animation-timing-function: step-end; animation-fill-mode: both; }
-  .wl-clean { animation-name: wl-clean; }
+  .wl-f.wl-it { width: auto; height: auto; font-family: 'Italiana', 'Alpha Lyrae', serif; font-weight: 400; font-size: 1.1em; line-height: 1; letter-spacing: -0.02em; white-space: nowrap; }
   .wl-a { animation-name: wl-a; }
   .wl-b { animation-name: wl-b; }
   .wl-c { animation-name: wl-c; }
   .wl-d { animation-name: wl-d; }
   .wl-final { animation-name: wl-final; }
-  @keyframes wl-clean { 0% { opacity: 1; } 20% { opacity: 0; } 28% { opacity: 1; } 36% { opacity: 0; } 70% { opacity: 1; } 78%, 100% { opacity: 0; } }
-  @keyframes wl-a { 0% { opacity: 0; } 20% { opacity: 1; } 28% { opacity: 0; } 52% { opacity: 1; } 60%, 100% { opacity: 0; } }
-  @keyframes wl-b { 0%, 36% { opacity: 0; } 36% { opacity: 1; } 46%, 100% { opacity: 0; } }
-  @keyframes wl-c { 0%, 46% { opacity: 0; } 46% { opacity: 1; } 52%, 100% { opacity: 0; } }
-  @keyframes wl-d { 0%, 60% { opacity: 0; } 60% { opacity: 1; } 70%, 100% { opacity: 0; } }
-  @keyframes wl-final { 0%, 77.9% { opacity: 0; } 78%, 100% { opacity: 1; } }
+  .wl-it { animation-name: wl-it; }
+  .wl-clean { display: none; }
+  @keyframes wl-final { 0% { opacity: 1; } 22%, 100% { opacity: 0; } }
+  @keyframes wl-d { 0% { opacity: 0; } 22% { opacity: 1; } 32%, 100% { opacity: 0; } }
+  @keyframes wl-c { 0% { opacity: 0; } 32% { opacity: 1; } 42% { opacity: 0; } 70% { opacity: 1; } 76%, 100% { opacity: 0; } }
+  @keyframes wl-b { 0%, 47.9% { opacity: 0; } 48% { opacity: 1; } 56%, 100% { opacity: 0; } }
+  @keyframes wl-a { 0%, 55.9% { opacity: 0; } 56% { opacity: 1; } 64%, 100% { opacity: 0; } }
+  @keyframes wl-it { 0%, 41.9% { opacity: 0; } 42% { opacity: 1; } 48% { opacity: 0; } 64% { opacity: 1; } 70% { opacity: 0; } 76%, 100% { opacity: 1; } }
   @media (max-width: 440px) { .loader-line { width: calc(100vw - 80px); } }   /* 40px left and right margins on small phones */
   @keyframes loader-wipe { from { width: 1px; } to { width: calc(100% + 2px); } }
   @keyframes loader-welcome-in { to { opacity: 1; transform: translateY(0); } }
@@ -857,7 +859,7 @@
 
   <div class="loader" id="loader" aria-hidden="true">
     <div class="loader-line"><div class="loader-mask"></div></div>
-    <p class="loader-welcome"><span class="wl" role="img" aria-label="Welcome!"><svg class="wl-f wl-clean" viewBox="0 0 4476 810"><use href="#wl-clean"/></svg><svg class="wl-f wl-a" viewBox="0 0 4476 810"><use href="#wl-a"/></svg><svg class="wl-f wl-b" viewBox="0 0 4476 810"><use href="#wl-b"/></svg><svg class="wl-f wl-c" viewBox="0 0 4476 810"><use href="#wl-c"/></svg><svg class="wl-f wl-d" viewBox="0 0 4476 810"><use href="#wl-d"/></svg><svg class="wl-f wl-final" viewBox="0 0 4476 810"><use href="#wl-final"/></svg></span></p>
+    <p class="loader-welcome"><span class="wl" role="img" aria-label="Welcome!"><svg class="wl-f wl-clean" viewBox="0 0 4476 810"><use href="#wl-clean"/></svg><svg class="wl-f wl-a" viewBox="0 0 4476 810"><use href="#wl-a"/></svg><svg class="wl-f wl-b" viewBox="0 0 4476 810"><use href="#wl-b"/></svg><svg class="wl-f wl-c" viewBox="0 0 4476 810"><use href="#wl-c"/></svg><svg class="wl-f wl-d" viewBox="0 0 4476 810"><use href="#wl-d"/></svg><svg class="wl-f wl-final" viewBox="0 0 4476 810"><use href="#wl-final"/></svg><span class="wl-f wl-it">Welcome!</span></span></p>
   </div>
   <script>
     try {
@@ -1024,7 +1026,7 @@
         setTimeout(function () { loader.remove(); }, 900);
       }, 500);
     }
-    loader.querySelector('.wl-final').addEventListener('animationend', function () { welcomeShown = true; finish(); });   // the glitch has settled
+    loader.querySelector('.wl-it').addEventListener('animationend', function () { welcomeShown = true; finish(); });   // the glitch has settled into the Italiana word
     if (document.readyState === 'complete') { pageLoaded = true; }
     else { window.addEventListener('load', function () { pageLoaded = true; finish(); }); }
     finish();
