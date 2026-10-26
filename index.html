@@ -566,7 +566,7 @@
     color: #fff;
     font-size: 10px;
     padding: 6px 8px;
-    border-radius: 10px;
+    border-radius: 0;
     white-space: nowrap;
   }
 
@@ -575,9 +575,18 @@
     position: relative;
     z-index: 5;
     background: #232323;
-    border-top: 1px solid var(--pill-grey);
     padding: 72px 0;
   }
+  /* the divider above the footer: inset to the same left and right margins as Selected Works (80px; 20px on small phones; 160px on large screens) */
+  .footer::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 80px; right: 80px;
+    height: 1px;
+    background: var(--pill-grey);
+  }
+  @media (max-width: 440px) { .footer::before { left: 20px; right: 20px; } }
+  @media (min-width: 1990px) { .footer::before { left: 160px; right: 160px; } }
   .footer .wrap {
     max-width: none;
     padding: 0 80px;
@@ -938,7 +947,7 @@
                 <span class="tag">Design &amp; Product Ops</span>
               </div>
             </div>
-            <p class="card-desc">Internal knowledge base tool enabling teams to ideate faster and with confidence</p>
+            <p class="card-desc">An internal knowledge base tool for teams to ideate faster and with confidence</p>
           </div>
         </article>
 
@@ -954,7 +963,7 @@
                 <span class="tag">Data Viz</span>
               </div>
             </div>
-            <p class="card-desc">Enabling users to have a more effective start to their daily workflows.</p>
+            <p class="card-desc">Enabled users to have a more effective start to their daily workflows.</p>
           </div>
         </article>
 
