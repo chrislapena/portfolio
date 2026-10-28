@@ -19,7 +19,7 @@
     if (!canvas || canvas.__navGradient) return;
     if (NAV_THEME === 'ps2' && window.THREE && window.initPs2Field) {
       // a calm strip: fewer blocks, a smaller shadow map, no pointer tilt and no scroll rush
-      window.initPs2Field(canvas, { count: 216, speed: 1, softness: 0.6, shadowMap: 1024, warp: 0, rewind: 0, pointer: false, contrast: '.nav-back' });   // count: 216 (was 150; scaled up by the same 750/520 step as the home page)
+      window.initPs2Field(canvas, { count: window.innerWidth < 700 ? 280 : 750, speed: 1, softness: 0.6, shadowMap: 1024, warp: 0, rewind: 0, pointer: false, contrast: '.nav-back' });   // count: the same as the home page (750; 280 on phones under 700px). It was 150, then 216.
       return;
     }
     if (typeof neat === 'undefined' || typeof neat.NeatGradient === 'undefined') {
