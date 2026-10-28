@@ -1518,7 +1518,7 @@ if (!prefersReducedMotion) {
     var ps2Ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);   // iPhone / iPad (Safari's bars are what this is about)
     var ps2Pin = /[?&]pin=off/.test(location.search) ? false : /[?&]pin=sticky/.test(location.search) ? 'sticky' : /[?&]pin(=|&|$)/.test(location.search) ? true : (ps2Ios ? 'sticky' : false);
     window.initPs2Field(document.getElementById('hero-gradient'), {
-      count: window.innerWidth < 700 ? 280 : 520,   // number of loose blocks
+      count: window.innerWidth < 700 ? 280 : 750,   // number of loose blocks (desktop/tablet was 520; phones stay at 280)
       speed: 1,                                      // 0 = still, 1 = default, 2 = fast
       near: 5, fade: 6,                              // blocks dissolve between near+fade and near units from the camera (smaller fade = quicker)
       softness: 0.7,                                 // render scale; lower = softer and cheaper
