@@ -1061,6 +1061,7 @@
     // Buttery snap glide: the same easing curve Lenis uses (fast start, long soft landing), ~1.1s. Frame-time based, so it stays
     // smooth on 60 / 120Hz screens; a new gesture simply starts a new glide from wherever the page is.
     var dest = null;                                  // where the running glide is heading (null = idle)
+    var tailDir = 0, tailUntil = 0;                    // direction of the last snap, and until when its trackpad coasting tail may still be arriving
     function easeOutExpo(p) { return p >= 1 ? 1 : Math.min(1, 1.001 - Math.pow(2, -10 * p)); }   // (the old curve, kept for reference: its tail crawled the last few pixels one tick at a time, ~80ms apart, which read as a shake at the very end)
     function easeOutQuart(p) { return 1 - Math.pow(1 - Math.min(1, p), 4); }                      // still a fast start and a soft landing, but the landing finishes decisively
     function glide(to) {
@@ -1074,7 +1075,7 @@
         var p = Math.min(1, (t - t0) / dur);
         var dpr = window.devicePixelRatio || 1;
         window.scrollTo(0, Math.round((from + dist * easeOutQuart(p)) * dpr) / dpr);   // steps of one DEVICE pixel (half a CSS pixel on a retina screen): no sub-pixel shimmer, and no coarse 1px ticks at the end
-        if (p < 1) raf = requestAnimationFrame(frame); else { window.scrollTo(0, to); dest = null; }
+        if (p < 1) raf = requestAnimationFrame(frame); else { window.scrollTo(0, to); dest = null; tailDir = dist > 0 ? 1 : -1; tailUntil = performance.now() + 1000; }
       })(performance.now());
     }
     // where would a snap in this direction go? (relative to the page position, or to the glide's destination if one is running,
@@ -1167,18 +1168,28 @@
     // page past the next section. A new flick (a pause in the events) is honoured immediately, even mid-glide.
     // Trackpads start a flick with tiny deltas (1, 2, 3 ... px) that ramp up, so the decision is made on the flick's TOTAL travel
     // (a few px), not on its very first event.
-    var lastT = 0, swallow = false, handled = false, gestureSum = 0, flickDir = 0, swallowSince = 0;
+    var lastT = 0, swallow = false, handled = false, gestureSum = 0, flickDir = 0, swallowSince = 0, lastAbs = 0, rising = 0;
     window.addEventListener('wheel', function (e) {
-      var now = performance.now(), dy = e.deltaY, sign = dy > 0 ? 1 : dy < 0 ? -1 : 0;
-      if (e.ctrlKey || Math.abs(dy) < 1 || Math.abs(e.deltaX) > Math.abs(dy) * 2.5) return;   // pinch-zoom or a clearly sideways swipe (a diagonal swipe still counts as vertical)
-      // A gesture is over after a 160ms pause. Two more ways it can end, so the page can never get stuck swallowing scroll input (a frozen page):
-      //  - the user swipes the OTHER way while the last swipe is still coasting (the trackpad's coasting events keep arriving, so there is no pause);
-      //  - it has been swallowing for more than 1.6s (a coasting tail never lasts that long).
-      var reversed = handled && flickDir !== 0 && sign !== flickDir && Math.abs(dy) >= 3;
+      var now = performance.now(), dy = e.deltaY, sign = dy > 0 ? 1 : dy < 0 ? -1 : 0, ady = Math.abs(dy);
+      if (e.ctrlKey || ady < 1 || Math.abs(e.deltaX) > ady * 2.5) return;   // pinch-zoom or a clearly sideways swipe (a diagonal swipe still counts as vertical)
+      var inTail = swallow && dest === null && sign === flickDir;   // the snap has landed and we are still swallowing the same flick's events
+      var rise = ady > lastAbs ? rising + 1 : 0; rising = rise;   // how many events in a row have each been stronger than the one before
+      // 1) the trackpad's coasting tail after a snap has landed: events that only ever get weaker (or sit at a tiny, flat level). They are swallowed
+      //    however sparsely they arrive, so the dying momentum can never push the page on past the section.
+      //    Anything else after landing, in the same direction, is the user scrolling ON: events that stay strong (a fast mouse-wheel spin, a hard
+      //    flick), or that start growing, are let straight through, so you are never held up in Selected Works.
+      var decaying = ady < lastAbs || (ady <= lastAbs + 1 && ady <= 8);
+      if (inTail && decaying && rise < 2) { lastT = now; lastAbs = ady; e.preventDefault(); return; }
+      var tailSurge = inTail;                                  // (anything that is not clearly the tail)
+      // A gesture is over after a 160ms pause. Other ways it ends, so the page can never get stuck swallowing scroll input (a frozen page):
+      //  - the user swipes the OTHER way while the last swipe is still coasting (the coasting events keep arriving, so there is no pause);
+      //  - it has been swallowing for more than 1.6s (a coasting tail never lasts that long);
+      //  - the user scrolls on in the same direction after the snap landed (tailSurge, above).
+      var reversed = handled && flickDir !== 0 && sign !== flickDir && ady >= 3;
       var tooLong = swallow && now - swallowSince > 1600;
-      var fresh = now - lastT > 160 || reversed || tooLong;
-      lastT = now;
-      if (fresh) { swallow = false; handled = false; gestureSum = 0; flickDir = 0; cancelAnimationFrame(raf); dest = null; }
+      var fresh = now - lastT > 160 || reversed || tooLong || tailSurge;
+      lastT = now; lastAbs = ady;
+      if (fresh) { swallow = false; handled = false; gestureSum = 0; flickDir = 0; tailUntil = 0; cancelAnimationFrame(raf); dest = null; }
       if (!handled) {
         // (a new flick in the opposite direction restarts the count)
         if (gestureSum && (gestureSum > 0) !== (dy > 0)) gestureSum = 0;
