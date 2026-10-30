@@ -1048,6 +1048,27 @@
   (function () {
     var strip = document.querySelector('.strip');
     if (!strip) return;
+    // ================= SNAP TUNING: every number that sets how the snap feels, in one place =================
+    var SNAP = {
+      // --- effort: how little it takes to start a snap ---
+      STROKE_PX: 3,            // px of trackpad travel (or one mouse notch) that starts a snap. Lower = even lighter touch, higher = needs a firmer stroke
+      STROKE_WINDOW_MS: 500,   // tiny, slow strokes keep adding up if the gaps between them are shorter than this (ms)
+      // --- speed: how long the snap takes to move one section ---
+      GLIDE_BASE_MS: 590,      // the snap lasts GLIDE_BASE_MS + distance * GLIDE_PER_PX ms (hero -> Works, 1031px: 590 + 309 = ~900ms)
+      GLIDE_PER_PX: 0.3,
+      GLIDE_MAX_MS: 1300,      // never longer than this
+      EASE_POWER: 4,           // how it settles: 4 = fast start, soft landing. 3 = a gentler start, 5 = even sharper start and longer soft tail
+      // --- never held up ---
+      FAST_PX: 350,            // a scroll this strong (px of travel) ...
+      FAST_MS: 160,            // ... within this many ms (and 3+ events) is a "really fast scroll": the snap lets go, no waiting
+      GRACE_MS: 250,           // the first ms of a snap belong to the stroke that started it (its own ramp-up is not mistaken for a new swipe)
+      SWALLOW_MAX_MS: 1600,    // the page never ignores scroll input for longer than this, whatever happens
+      REVERSE_PX: 3,           // a swipe the other way this strong takes effect at once
+      // --- resting page ---
+      REST_MS: 140,            // a page left resting between the sections for this long finishes its move on its own
+      HOLD_PX: 160             // while the page is only this far down (no snap running) the cards stay parked and simply rise with it
+    };
+    // ======================================================================================================
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var raf = null;
 
@@ -1063,13 +1084,13 @@
     var dest = null;                                  // where the running glide is heading (null = idle)
     var tailDir = 0, tailUntil = 0;                    // direction of the last snap, and until when its trackpad coasting tail may still be arriving
     function easeOutExpo(p) { return p >= 1 ? 1 : Math.min(1, 1.001 - Math.pow(2, -10 * p)); }   // (the old curve, kept for reference: its tail crawled the last few pixels one tick at a time, ~80ms apart, which read as a shake at the very end)
-    function easeOutQuart(p) { return 1 - Math.pow(1 - Math.min(1, p), 4); }                      // still a fast start and a soft landing, but the landing finishes decisively
+    function easeOutQuart(p) { return 1 - Math.pow(1 - Math.min(1, p), SNAP.EASE_POWER); }                      // still a fast start and a soft landing, but the landing finishes decisively
     function glide(to) {
       cancelAnimationFrame(raf);
       dest = to;
       var from = window.pageYOffset, dist = to - from;
       if (reduce || Math.abs(dist) < 2) { window.scrollTo(0, to); dest = null; return; }
-      var dur = Math.min(1300, 850 + Math.abs(dist) * 0.3), t0 = null;
+      var dur = Math.min(SNAP.GLIDE_MAX_MS, SNAP.GLIDE_BASE_MS + Math.abs(dist) * SNAP.GLIDE_PER_PX), t0 = null;
       (function frame(t) {
         if (t0 === null) t0 = t;
         var p = Math.min(1, (t - t0) / dur);
@@ -1122,7 +1143,7 @@
       var gridDocTop = gridWrap.getBoundingClientRect().top + window.pageYOffset;
       cardGrid.style.setProperty('--peek-shift', Math.round(window.innerHeight - PEEK - gridDocTop + (window.TOP_PAD || 0)) + 'px');   // + TOP_PAD: the page rests that far down
     }
-    var HOLD = 160;                                            // px: a page scrolled only this little way (no snap running) keeps the cards parked, rising with it
+    var HOLD = SNAP.HOLD_PX;                                            // px: a page scrolled only this little way (no snap running) keeps the cards parked, rising with it
     function checkCards() { if (cardGrid) cardGrid.classList.toggle("is-pre", dest !== null ? dest <= PAD + 2 : window.pageYOffset <= PAD + HOLD); }  // a glide up to the top counts as already there, so the cards start returning the moment the snap begins
     window.addEventListener('scroll', checkCards, { passive: true });
     window.addEventListener('resize', placePeek);
@@ -1139,7 +1160,7 @@
         if (dest !== null || !active()) return;
         var list = anchors(), y2 = window.pageYOffset;
         if (y2 > PAD + 6 && y2 < list[1] - 6) glide(restDir >= 0 ? list[1] : list[0]);
-      }, 140);
+      }, SNAP.REST_MS);
     }, { passive: true });
 
     // iPhone / iPad: open already scrolled past the top band, and if the page is left resting inside that band, ease back to the hero
@@ -1175,7 +1196,7 @@
       if (e.ctrlKey || ady < 1 || Math.abs(e.deltaX) > ady * 2.5) return;   // pinch-zoom or a clearly sideways swipe (a diagonal swipe still counts as vertical)
       // the rest of THIS stroke (its coasting events) vs the user's NEXT swipe. The first 250ms of a snap belong to the stroke that started it (its own
       // ramp-up keeps growing); after that, or once the snap has landed, only events that keep getting weaker are the coasting tail.
-      var inTail = swallow && sign === flickDir && (dest === null || now - swallowSince > 250);
+      var inTail = swallow && sign === flickDir && (dest === null || now - swallowSince > SNAP.GRACE_MS);
       var rise = ady > lastAbs ? rising + 1 : 0; rising = rise;   // how many events in a row have each been stronger than the one before
       // 1) the trackpad's coasting tail after a snap has landed: events that only ever get weaker (or sit at a tiny, flat level). They are swallowed
       //    however sparsely they arrive, so the dying momentum can never push the page on past the section.
@@ -1195,24 +1216,24 @@
       //  - the user swipes the OTHER way while the last swipe is still coasting (the coasting events keep arriving, so there is no pause);
       //  - it has been swallowing for more than 1.6s (a coasting tail never lasts that long);
       //  - the user scrolls on in the same direction after the snap landed (tailSurge, above).
-      var reversed = handled && flickDir !== 0 && sign !== flickDir && ady >= 3;
-      var tooLong = swallow && now - swallowSince > 1600;
+      var reversed = handled && flickDir !== 0 && sign !== flickDir && ady >= SNAP.REVERSE_PX;
+      var tooLong = swallow && now - swallowSince > SNAP.SWALLOW_MAX_MS;
       var fresh = now - lastT > 160 || reversed || tooLong || tailSurge;
       lastT = now; lastAbs = ady;
       if (fresh) { swallow = false; handled = false; flickDir = 0; tailUntil = 0; gStart = now; gAbs = 0; gCount = 0; fastFree = false; cancelAnimationFrame(raf); dest = null; }
       gAbs += ady; gCount++;
       if (!handled) {
         // the count of small strokes: tiny, slow strokes keep adding up (a pause of up to 0.5s does not lose them); a stroke the other way restarts it
-        if (now - sumT > 500 || (gestureSum && (gestureSum > 0) !== (dy > 0))) gestureSum = 0;
+        if (now - sumT > SNAP.STROKE_WINDOW_MS || (gestureSum && (gestureSum > 0) !== (dy > 0))) gestureSum = 0;
         sumT = now; gestureSum += dy;
-        if (Math.abs(gestureSum) >= 3) {                 // a small stroke is enough: 3px of travel
+        if (Math.abs(gestureSum) >= SNAP.STROKE_PX) {    // a small stroke is enough (SNAP.STROKE_PX of travel)
           handled = true; flickDir = gestureSum > 0 ? 1 : -1; gestureSum = 0;
           if (step(flickDir)) { swallow = true; swallowSince = now; }
         }
       } else sumT = now;
       // A REALLY fast scroll (a hard flick, a mouse wheel spun fast: 3+ events, 350px+ inside the first 160ms) is never held up: the snap lets go
       // and the page scrolls natively under the user's fingers. (If it then comes to rest between the sections, the resting page finishes the move.)
-      if (!fastFree && swallow && gCount >= 3 && gAbs >= 350 && now - gStart <= 160) { fastFree = true; swallow = false; cancelAnimationFrame(raf); dest = null; }
+      if (!fastFree && swallow && gCount >= 3 && gAbs >= SNAP.FAST_PX && now - gStart <= SNAP.FAST_MS) { fastFree = true; swallow = false; cancelAnimationFrame(raf); dest = null; }
       if (swallow) e.preventDefault();                                     // the rest of this flick (momentum) must not move the page
     }, { passive: false });
 
