@@ -1169,6 +1169,7 @@
     // Trackpads start a flick with tiny deltas (1, 2, 3 ... px) that ramp up, so the decision is made on the flick's TOTAL travel
     // (a few px), not on its very first event.
     var lastT = 0, swallow = false, handled = false, gestureSum = 0, flickDir = 0, swallowSince = 0, lastAbs = 0, rising = 0;
+    var sumT = 0, gStart = 0, gAbs = 0, gCount = 0, fastFree = false;   // gesture bookkeeping: when the small-stroke count last moved, and how hard/fast this gesture is
     window.addEventListener('wheel', function (e) {
       var now = performance.now(), dy = e.deltaY, sign = dy > 0 ? 1 : dy < 0 ? -1 : 0, ady = Math.abs(dy);
       if (e.ctrlKey || ady < 1 || Math.abs(e.deltaX) > ady * 2.5) return;   // pinch-zoom or a clearly sideways swipe (a diagonal swipe still counts as vertical)
@@ -1189,16 +1190,20 @@
       var tooLong = swallow && now - swallowSince > 1600;
       var fresh = now - lastT > 160 || reversed || tooLong || tailSurge;
       lastT = now; lastAbs = ady;
-      if (fresh) { swallow = false; handled = false; gestureSum = 0; flickDir = 0; tailUntil = 0; cancelAnimationFrame(raf); dest = null; }
+      if (fresh) { swallow = false; handled = false; flickDir = 0; tailUntil = 0; gStart = now; gAbs = 0; gCount = 0; fastFree = false; cancelAnimationFrame(raf); dest = null; }
+      gAbs += ady; gCount++;
       if (!handled) {
-        // (a new flick in the opposite direction restarts the count)
-        if (gestureSum && (gestureSum > 0) !== (dy > 0)) gestureSum = 0;
-        gestureSum += dy;
-        if (Math.abs(gestureSum) >= 4) {
-          handled = true; flickDir = gestureSum > 0 ? 1 : -1;
+        // the count of small strokes: tiny, slow strokes keep adding up (a pause of up to 0.5s does not lose them); a stroke the other way restarts it
+        if (now - sumT > 500 || (gestureSum && (gestureSum > 0) !== (dy > 0))) gestureSum = 0;
+        sumT = now; gestureSum += dy;
+        if (Math.abs(gestureSum) >= 3) {                 // a small stroke is enough: 3px of travel
+          handled = true; flickDir = gestureSum > 0 ? 1 : -1; gestureSum = 0;
           if (step(flickDir)) { swallow = true; swallowSince = now; }
         }
-      }
+      } else sumT = now;
+      // A REALLY fast scroll (a hard flick, a mouse wheel spun fast: 3+ events, 350px+ inside the first 160ms) is never held up: the snap lets go
+      // and the page scrolls natively under the user's fingers. (If it then comes to rest between the sections, the resting page finishes the move.)
+      if (!fastFree && swallow && gCount >= 3 && gAbs >= 350 && now - gStart <= 160) { fastFree = true; swallow = false; cancelAnimationFrame(raf); dest = null; }
       if (swallow) e.preventDefault();                                     // the rest of this flick (momentum) must not move the page
     }, { passive: false });
 
