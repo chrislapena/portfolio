@@ -1173,15 +1173,24 @@
     window.addEventListener('wheel', function (e) {
       var now = performance.now(), dy = e.deltaY, sign = dy > 0 ? 1 : dy < 0 ? -1 : 0, ady = Math.abs(dy);
       if (e.ctrlKey || ady < 1 || Math.abs(e.deltaX) > ady * 2.5) return;   // pinch-zoom or a clearly sideways swipe (a diagonal swipe still counts as vertical)
-      var inTail = swallow && dest === null && sign === flickDir;   // the snap has landed and we are still swallowing the same flick's events
+      // the rest of THIS stroke (its coasting events) vs the user's NEXT swipe. The first 250ms of a snap belong to the stroke that started it (its own
+      // ramp-up keeps growing); after that, or once the snap has landed, only events that keep getting weaker are the coasting tail.
+      var inTail = swallow && sign === flickDir && (dest === null || now - swallowSince > 250);
       var rise = ady > lastAbs ? rising + 1 : 0; rising = rise;   // how many events in a row have each been stronger than the one before
       // 1) the trackpad's coasting tail after a snap has landed: events that only ever get weaker (or sit at a tiny, flat level). They are swallowed
       //    however sparsely they arrive, so the dying momentum can never push the page on past the section.
       //    Anything else after landing, in the same direction, is the user scrolling ON: events that stay strong (a fast mouse-wheel spin, a hard
       //    flick), or that start growing, are let straight through, so you are never held up in Selected Works.
-      var decaying = ady < lastAbs || (ady <= lastAbs + 1 && ady <= 8);
-      if (inTail && decaying && rise < 2) { lastT = now; lastAbs = ady; e.preventDefault(); return; }
+      //    (Real coasting loses ~5% per event, so equal neighbours only happen at small values (rounding): up to 24px an equal or +1 event still counts as
+      //    coasting; above that, events that stay level are a mouse wheel or a hard flick, i.e. the user.)
+      var decaying = ady < lastAbs || (ady <= lastAbs + 1 && ady <= 24);
+      var growing = rise >= 2 || ady > lastAbs + 6 || (ady >= 50 && ady >= lastAbs);
+      var tailish = decaying || (dest !== null && !growing);      // while the snap is still gliding, a level event that is not clearly growing is still this stroke
+      if (inTail && tailish && rise < 2) { lastT = now; lastAbs = ady; e.preventDefault(); return; }
       var tailSurge = inTail;                                  // (anything that is not clearly the tail)
+      // An extra swipe while the snap is still gliding is NOT ignored: the snap lets go and the page scrolls under the new swipe (if it then rests
+      // between the sections, the resting page finishes the move).
+      if (tailSurge && dest !== null) { cancelAnimationFrame(raf); dest = null; swallow = false; lastT = now; lastAbs = ady; return; }
       // A gesture is over after a 160ms pause. Other ways it ends, so the page can never get stuck swallowing scroll input (a frozen page):
       //  - the user swipes the OTHER way while the last swipe is still coasting (the coasting events keep arriving, so there is no pause);
       //  - it has been swallowing for more than 1.6s (a coasting tail never lasts that long);
