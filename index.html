@@ -1121,11 +1121,25 @@
       var gridDocTop = gridWrap.getBoundingClientRect().top + window.pageYOffset;
       cardGrid.style.setProperty('--peek-shift', Math.round(window.innerHeight - PEEK - gridDocTop + (window.TOP_PAD || 0)) + 'px');   // + TOP_PAD: the page rests that far down
     }
-    function checkCards() { if (cardGrid) cardGrid.classList.toggle("is-pre", (dest !== null ? dest : window.pageYOffset) <= PAD + 2); }  // a glide up to the top counts as already there, so the cards start returning the moment the snap begins
+    var HOLD = 160;                                            // px: a page scrolled only this little way (no snap running) keeps the cards parked, rising with it
+    function checkCards() { if (cardGrid) cardGrid.classList.toggle("is-pre", dest !== null ? dest <= PAD + 2 : window.pageYOffset <= PAD + HOLD); }  // a glide up to the top counts as already there, so the cards start returning the moment the snap begins
     window.addEventListener('scroll', checkCards, { passive: true });
     window.addEventListener('resize', placePeek);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(placePeek);
     placePeek(); checkCards();
+
+    // Safety net: if the page is ever left resting between the hero and Works with no snap running (a very gentle swipe that did not reach the
+    // trigger, a scrollbar drag...), it finishes the move on its own, in the direction it was already going.
+    var restT = null, restY = window.pageYOffset, restDir = 0;
+    window.addEventListener('scroll', function () {
+      var y = window.pageYOffset; if (y !== restY) { restDir = y > restY ? 1 : -1; restY = y; }
+      clearTimeout(restT);
+      restT = setTimeout(function () {
+        if (dest !== null || !active()) return;
+        var list = anchors(), y2 = window.pageYOffset;
+        if (y2 > PAD + 6 && y2 < list[1] - 6) glide(restDir >= 0 ? list[1] : list[0]);
+      }, 140);
+    }, { passive: true });
 
     // iPhone / iPad: open already scrolled past the top band, and if the page is left resting inside that band, ease back to the hero
     if (PAD) {
@@ -1153,19 +1167,25 @@
     // page past the next section. A new flick (a pause in the events) is honoured immediately, even mid-glide.
     // Trackpads start a flick with tiny deltas (1, 2, 3 ... px) that ramp up, so the decision is made on the flick's TOTAL travel
     // (a few px), not on its very first event.
-    var lastT = 0, swallow = false, handled = false, gestureSum = 0;
+    var lastT = 0, swallow = false, handled = false, gestureSum = 0, flickDir = 0, swallowSince = 0;
     window.addEventListener('wheel', function (e) {
-      var now = performance.now(), fresh = now - lastT > 160;
+      var now = performance.now(), dy = e.deltaY, sign = dy > 0 ? 1 : dy < 0 ? -1 : 0;
+      if (e.ctrlKey || Math.abs(dy) < 1 || Math.abs(e.deltaX) > Math.abs(dy) * 2.5) return;   // pinch-zoom or a clearly sideways swipe (a diagonal swipe still counts as vertical)
+      // A gesture is over after a 160ms pause. Two more ways it can end, so the page can never get stuck swallowing scroll input (a frozen page):
+      //  - the user swipes the OTHER way while the last swipe is still coasting (the trackpad's coasting events keep arriving, so there is no pause);
+      //  - it has been swallowing for more than 1.6s (a coasting tail never lasts that long).
+      var reversed = handled && flickDir !== 0 && sign !== flickDir && Math.abs(dy) >= 3;
+      var tooLong = swallow && now - swallowSince > 1600;
+      var fresh = now - lastT > 160 || reversed || tooLong;
       lastT = now;
-      if (e.ctrlKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;   // pinch-zoom or a sideways swipe
-      if (fresh) { swallow = false; handled = false; gestureSum = 0; cancelAnimationFrame(raf); dest = null; }
+      if (fresh) { swallow = false; handled = false; gestureSum = 0; flickDir = 0; cancelAnimationFrame(raf); dest = null; }
       if (!handled) {
         // (a new flick in the opposite direction restarts the count)
-        if (gestureSum && (gestureSum > 0) !== (e.deltaY > 0)) gestureSum = 0;
-        gestureSum += e.deltaY;
+        if (gestureSum && (gestureSum > 0) !== (dy > 0)) gestureSum = 0;
+        gestureSum += dy;
         if (Math.abs(gestureSum) >= 4) {
-          handled = true;
-          if (step(gestureSum > 0 ? 1 : -1)) swallow = true;
+          handled = true; flickDir = gestureSum > 0 ? 1 : -1;
+          if (step(flickDir)) { swallow = true; swallowSince = now; }
         }
       }
       if (swallow) e.preventDefault();                                     // the rest of this flick (momentum) must not move the page
