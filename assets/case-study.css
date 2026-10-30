@@ -379,6 +379,7 @@
     color: var(--ink-soft);
   }
   .stat-solo svg { flex: none; }
+  @media (max-width: 480px) { .stat-solo { font-size: 56px; gap: 12px; white-space: nowrap; } }
 
   @media (min-width: 901px) {
     .row-sticky h2.section.section-serif { position: sticky; top: 84px; align-self: start; }
