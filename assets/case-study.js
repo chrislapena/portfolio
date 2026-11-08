@@ -387,3 +387,46 @@
       first.observe(fab);
     }
   })();
+
+/* "Solutions" title: plain Alpha Lyrae until the title locks at the top of the screen, then a short light glitch into Italiana (and back when scrolled up) */
+(function () {
+  var titles = document.querySelectorAll('h2.sol-title');
+  if (!titles.length) return;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var frames = ['a', 'b', 'c'];
+  titles.forEach(function (h) {
+    var word = h.textContent.trim();
+    h.setAttribute('aria-label', word);
+    var wrap = document.createElement('span');
+    wrap.className = 'sol';
+    wrap.setAttribute('aria-hidden', 'true');
+    wrap.innerHTML = '<span class="sol-f sol-ly">' + word + '</span>' + frames.map(function (k) {
+      return '<svg class="sol-f sol-' + k + '" viewBox="0 0 4265 810"><use href="assets/solutions-glitch.svg#sol-' + k + '"/></svg>';
+    }).join('') + '<span class="sol-f sol-it">' + word + '</span>';
+    h.textContent = '';
+    h.appendChild(wrap);
+    h.__locked = false;
+  });
+  function threshold(h) {
+    var cs = getComputedStyle(h);
+    return cs.position === 'sticky' ? (parseFloat(cs.top) || 0) + 2 : window.innerHeight * 0.4;
+  }
+  function set(h, locked, animate) {
+    h.__locked = locked;
+    h.classList.toggle('is-locked', locked);
+    h.classList.remove('is-anim-in', 'is-anim-out');
+    if (animate && !reduce) { void h.offsetWidth; h.classList.add(locked ? 'is-anim-in' : 'is-anim-out'); }
+  }
+  var ticking = false;
+  function check(animate) {
+    ticking = false;
+    titles.forEach(function (h) {
+      var top = h.getBoundingClientRect().top, t = threshold(h);
+      if (!h.__locked && top <= t) set(h, true, animate);
+      else if (h.__locked && top > t + 12) set(h, false, animate);
+    });
+  }
+  window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(function () { check(true); }); } }, { passive: true });
+  window.addEventListener('resize', function () { check(false); });
+  check(false);
+})();

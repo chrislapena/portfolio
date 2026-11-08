@@ -638,3 +638,34 @@ html.theme-ps2 .nav-back.on-dark:focus-visible { color: var(--link); -webkit-tex
   .intro--cs3 .intro-right { padding-top: 32px; }
   .intro--cs3 .chips.chips-after-two { margin-top: 6px; }
 }
+
+/* "Solutions" title: plain Alpha Lyrae like the other titles until it locks at the top, then a short light glitch (same 0.3s stepped flicker as the "Welcome!" loader) turns it into Italiana; scrolling back up plays it in reverse */
+h2.sol-title { overflow: visible; }
+.sol { display: inline-grid; justify-items: start; align-items: center; }
+.sol-f { grid-area: 1 / 1; opacity: 0; animation-duration: 0.3s; animation-timing-function: step-end; animation-fill-mode: both; white-space: nowrap; }
+.sol-ly { opacity: 1; font-family: 'Alpha Lyrae', 'Alexandria', sans-serif; font-weight: 500; font-size: 36px; letter-spacing: 0; -webkit-text-stroke: 1.5px #000; }
+svg.sol-f { width: 153.54px; height: 29.16px; overflow: visible; color: var(--ink); stroke: currentColor; stroke-width: 42; }
+.sol-it { font-family: 'Italiana', 'Alpha Lyrae', serif; font-weight: 400; font-size: 46px; letter-spacing: -0.92px; -webkit-text-stroke: 0; }
+.is-locked .sol-ly { opacity: 0; }
+.is-locked .sol-it { opacity: 1; }
+@keyframes sol-ly { 0%, 13.9% { opacity: 1; } 14%, 100% { opacity: 0; } }
+@keyframes sol-ly-r { 0%, 13.9% { opacity: 1; } 14%, 100% { opacity: 0; } }
+@keyframes sol-a { 0%, 13.9% { opacity: 0; } 14% { opacity: 1; } 24%, 100% { opacity: 0; } }
+@keyframes sol-a-r { 0%, 13.9% { opacity: 0; } 14% { opacity: 1; } 24%, 100% { opacity: 0; } }
+@keyframes sol-c { 0%, 23.9% { opacity: 0; } 24% { opacity: 1; } 34% { opacity: 0; } 58% { opacity: 1; } 64%, 100% { opacity: 0; } }
+@keyframes sol-c-r { 0%, 23.9% { opacity: 0; } 24% { opacity: 1; } 34% { opacity: 0; } 58% { opacity: 1; } 64%, 100% { opacity: 0; } }
+@keyframes sol-b { 0%, 39.9% { opacity: 0; } 40% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes sol-b-r { 0%, 39.9% { opacity: 0; } 40% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes sol-it { 0%, 33.9% { opacity: 0; } 34% { opacity: 1; } 40% { opacity: 0; } 50% { opacity: 1; } 58% { opacity: 0; } 64%, 100% { opacity: 1; } }
+@keyframes sol-it-r { 0%, 33.9% { opacity: 0; } 34% { opacity: 1; } 40% { opacity: 0; } 50% { opacity: 1; } 58% { opacity: 0; } 64%, 100% { opacity: 1; } }
+.is-anim-in .sol-ly { animation-name: sol-ly; }
+.is-anim-in .sol-a { animation-name: sol-a; }
+.is-anim-in .sol-c { animation-name: sol-c; }
+.is-anim-in .sol-b { animation-name: sol-b; }
+.is-anim-in .sol-it { animation-name: sol-it; }
+.is-anim-out .sol-ly { animation-name: sol-ly-r; animation-direction: reverse; }
+.is-anim-out .sol-a { animation-name: sol-a-r; animation-direction: reverse; }
+.is-anim-out .sol-c { animation-name: sol-c-r; animation-direction: reverse; }
+.is-anim-out .sol-b { animation-name: sol-b-r; animation-direction: reverse; }
+.is-anim-out .sol-it { animation-name: sol-it-r; animation-direction: reverse; }
+@media (prefers-reduced-motion: reduce) { .sol-f { animation: none !important; } }
