@@ -1132,6 +1132,7 @@
     function checkBg() {
       var p = 1 - strip.getBoundingClientRect().top / (window.innerHeight * 0.8);
       strip.style.setProperty("--works-bg", Math.max(0, Math.min(1, p)).toFixed(3));
+      window.__ps2Covered = p >= 1;   // the solid backdrop hides the block field completely: ps2-field.js stops drawing it until it shows again
     }
     window.addEventListener("scroll", checkBg, { passive: true });
     window.addEventListener("resize", checkBg);
@@ -1585,7 +1586,7 @@ if (!prefersReducedMotion) {
 
 <!-- PS2 theme background (Three.js, formerly Block Field): drifting, softly lit blocks that dissolve as they near the camera. The code lives in
      assets/ps2-field.js (shared with the case-study headers); it draws on the hero canvas when BG_THEME is 'ps2'. Tweak the options here. -->
-<script src="assets/ps2-field.js?v=17"></script>
+<script src="assets/ps2-field.js?v=18"></script>
 <script>
   if (window.BG_THEME === 'ps2') {
     var ps2Ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);   // iPhone / iPad (Safari's bars are what this is about)

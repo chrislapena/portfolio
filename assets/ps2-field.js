@@ -325,7 +325,7 @@ window.initPs2Field = function (canvas, options) {
   function frame(now) {
     var dt = Math.min((now - last) / 1000, 0.05);
     last = now;
-    if (!document.hidden && !reduce) {
+    if (!document.hidden && !reduce && !(window.__ps2Covered && !PIN)) {   /* home page: nothing is drawn while the solid Selected Works backdrop covers the field */
       t += dt * SPEED;
       warpTarget *= 0.9;                                  /* fades away once the scrolling stops */
       warp += (warpTarget - warp) * 0.2;
