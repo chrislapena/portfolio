@@ -369,6 +369,11 @@
     position: relative;
     background: #1b1b1b;
   }
+  /* Safari turns aspect-ratio + max-height into a width cap (570px x 2520/2280 = 630px) when the width is auto, so the thumbnail stopped short of the card;
+     an explicit full width fixes it. Safari only (the -webkit-hyphens test is true in Safari and false in Chrome/Firefox); phones set their own width and negative side margins below */
+  @supports (-webkit-hyphens: none) {
+    @media (min-width: 441px) { .card-media { width: 100%; } }
+  }
   /* screens 1990px wide and up: the mock stops growing. It keeps exactly the size and spacing it has at 1990px (artwork 905px wide, centred, cropped by the card's
      570px height as before), so the margins around it never increase. The rest of the card is the artwork's background image stretched to fill it, the same way
      the case study hero backgrounds are stretched, with the mock (its own transparent layer) on top. Card heights are untouched; the wide card has no mock and is left alone. */
