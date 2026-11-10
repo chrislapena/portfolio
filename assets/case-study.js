@@ -141,43 +141,48 @@
   });
 })();
 
-// Interactive prototype (case study 1): screens are stacked; invisible hotspots (frame coords, 375x812) switch between them.
+// Interactive prototype (case study 1): screens are stacked (iPhone 16, 393x852); invisible hotspots (frame coords) switch between them.
 (function () {
-  var W = 375, H = 812;
+  var W = 393, H = 852;
   var FLOW = {
-    1: [[100,398,175,38,6,'Show all categories'],[16,592,343,68,2,'Staff']],
-    2: [[8,44,52,46,1,'Back'],[315,40,52,52,4,'More options'],[100,452,175,34,3,'View full review']],
-    3: [[8,44,52,46,2,'Back']],
-    4: [[8,44,52,46,2,'Back'],[206,87,161,60,5,'Create ticket'],[0,88,206,122,2,'Close menu'],[0,210,375,602,2,'Close menu']],
-    5: [[8,62,52,44,4,'Close'],[16,416,343,50,8,'Create ticket']],
-    6: [[8,44,52,46,1,'Back'],[158,344,26,26,7,'About this category']],
-    7: [[0,0,375,596,6,'Dismiss'],[16,732,343,48,6,'Got it']],
-    8: [[214,733,135,34,9,'View in Actions']],
-    9: [],
-    10: [[106,728,161,60,1,'Reset prototype']]
+    1: [],   // Home scrolls: its tap areas live inside the scrolling body (data-go buttons in the page)
+    2: [[4,54,64,44,1,'Back'],[318,54,70,44,4,'More options']],   // Staff scrolls: Follow-Up and the review card live inside its scrolling body
+    3: [[4,54,64,44,2,'Back']],
+    4: [[133,96,248,44,7,'Create ticket'],[133,140,248,44,0,'Forward','dead'],[0,54,393,42,2,'Close menu'],[0,96,133,100,2,'Close menu'],[0,184,393,668,2,'Close menu'],[381,96,12,88,2,'Close menu']],
+    5: [[4,54,64,44,1,'Back']],   // Positive Categories scrolls: the info icon lives inside its scrolling list
+    6: [[20,766,353,50,5,'Got it'],[0,0,393,570,5,'Dismiss']],
+    7: [[343,89,38,38,4,'Close'],[20,495,353,50,10,'Create ticket']],
+    8: [[4,54,64,44,2,'Close'],[0,205,393,165,9,'Open ticket']],   // Actions slides up over Staff, so its top-left is a close X that slides it back down
+    9: [[4,54,64,44,8,'Back'],[20,740,353,64,1,'Reset prototype','btn']],   // the "Reset Prototype" button from the Figma file (353x64)
+    10: [[4,54,64,44,1,'Back'],[18,746,357,61,0,'Ticket created','dead'],[249,758,112,32,8,'See in Actions']],   // the toast body is a blocker so taps never reach the card under it
+    12: [[4,54,64,44,1,'Back']],
+    13: [[343,77,38,38,2,'Close']]
   };
   document.querySelectorAll('[data-proto]').forEach(function (box) {
     var phone = box.querySelector('.proto-phone');
     var screens = {};
     phone.querySelectorAll('.proto-screen').forEach(function (img) { screens[img.getAttribute('data-screen')] = img; });
     var layers = {};
-    // AUTO[screen] = [next screen, delay ms, soft?]: 8 = "Ticket Created" alert dismisses itself after 3s (pushes down out of view);
-    // 9 = Actions list flashes briefly, then the ticket detail appears
-    var AUTO = { 8: [2, 3000, true], 9: [10, 980] };  // 980 = 380ms slide-up + the 0.6s dwell
+    // AUTO[screen] = [next screen, delay ms, soft?]: 10 = "Ticket Created" alert (Staff + toast) dismisses itself after 5s (pushes down out of view)
+    var AUTO = { 10: [2, 5000, true] };
     var timer = null;
     var cur = 1, pushTimer = null;
-    // forward navigation "pushes" the new screen in from the right (iOS style): 1>2 quotes, 2>3 review, 1>6 all categories, 9>10 ticket detail
-    var PUSH = { '1>2': 1, '2>3': 1, '1>6': 1, '9>10': 1 };
-    // bottom sheets: 4>5 (create ticket form) and 6>7 (info sheet) slide up over the current screen; dismissing them (5>4, 7>6) slides them back down
-    var UP = { '4>5': 1, '6>7': 1, '8>9': 1 }, DOWN = { '5>4': 1, '7>6': 1 };
+    // forward navigation "pushes" the new screen in from the right (iOS style): 1>2 Staff, 2>3 review, 1>5 all categories, 1>12 category detail, 8>9 ticket detail
+    var PUSH = { '1>2': 1, '2>3': 1, '1>5': 1, '1>12': 1, '8>9': 1 };
+    // bottom sheets: 4>7 (new ticket), 5>6 (info sheet), 2>13 (ask about analysis) slide up over the current screen; dismissing them (7>4, 6>5, 13>2) slides them back down;
+    // 10>8: Actions slides up from the toast's "See in Actions"; its X (8>2) slides it back down
+    var UP = { '4>7': 1, '5>6': 1, '2>13': 1, '10>8': 1 }, DOWN = { '7>4': 1, '6>5': 1, '13>2': 1, '8>2': 1 };
     var PUSH_MS = 380, EASE_PUSH = 'cubic-bezier(0.32, 0.72, 0, 1)';
-    // Sheet screens 5 (create ticket) and 7 (info sheet) are full frames with a dimmed backdrop baked in. For the transition only the
-    // sheet itself slides; the screen underneath stays put while a black 60% dim (what the frames bake in) fades over it.
+    // screens that are drawn as another screen plus an overlay: 4 = Staff + the "..." menu, 10 = Staff + the "Ticket created" alert
+    var BASE = { 4: '2', 10: '2' };
+    // Sheet screens 7 (new ticket), 6 (info sheet) and 13 (ask about analysis) are full frames with a dimmed backdrop baked in. For the transition only the
+    // sheet itself slides; the screen underneath stays put while a black dim (the frames bake in 37%: white -> #a0a0a0) fades over it.
     var SHEETS = {
-      5: { under: 4, top: 54,  fades: [[0, 0, 375, 54]] },     // top strip: dimmed status bar + grabber
-      7: { under: 6, top: 596, fades: [[60, 578, 255, 14]] }   // grabber above the sheet
+      7:  { under: 2, top: 58,  fades: [[0, 0, 393, 58]] },    // top strip: dimmed status bar area above the sheet
+      6:  { under: 5, top: 570, fades: [], keep: true },     // stays over the live (scrollable) list instead of handing over to the full frame
+      13: { under: 2, top: 58,  fades: [[0, 0, 393, 58]] }
     };
-    var DIM = 0.6;
+    var DIM = 0.373;
     function crop(n, x, y, w, h) {
       var d = document.createElement('div');
       d.style.cssText = 'position:absolute;overflow:hidden;pointer-events:none;z-index:2;display:none;' +
@@ -195,28 +200,37 @@
     Object.keys(SHEETS).forEach(function (k) {
       var s = SHEETS[k];
       s.sheet = crop(k, 0, s.top, W, H - s.top);
-      s.sheet.style.borderRadius = '5.33cqw 5.33cqw 0 0';
+      s.sheet.style.borderRadius = '3.56cqw 3.56cqw 0 0';
       s.fadeEls = s.fades.map(function (f) { return crop(k, f[0], f[1], f[2], f[3]); });
     });
     // Sticky status bar: the screens have their baked-in bar erased; one transparent bar (glyphs only, multiplied over whatever is
     // behind it) sits above every screen, so it never slides with a push and stays put under the sheet shadows
-    var SB_H = 44;
+    var SB_H = 54;
     var sb = document.createElement('div');
     sb.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:' + (SB_H / H * 100) + '%;pointer-events:none;z-index:3;mix-blend-mode:multiply;';
     var sbImg = document.createElement('img');
-    sbImg.src = 'assets/case-study-1/proto/statusbar.png'; sbImg.alt = ''; sbImg.draggable = false;
+    sbImg.src = 'assets/case-study-1/proto/statusbar.png?v=20261110'; sbImg.alt = ''; sbImg.draggable = false;
     sbImg.style.cssText = 'display:block;width:100%;height:100%;pointer-events:none;';
     sb.appendChild(sbImg); phone.appendChild(sb);
-    // "Ticket Created!" alert (screen 5.2): isolated from its frame and animated on its own. Quotes about Staff (screen 2) stays
+    // "Ticket created" alert (screen 10): isolated from its frame and animated on its own. Staff (screen 2) stays
     // underneath; the alert pushes up into view and pushes back down out of view.
-    var TOAST = { x: 14.5, y: 718.5, w: 348, h: 63 }, toastTimer = null;
+    var TOAST = { x: 0, y: 735, w: 393, h: 85 }, toastTimer = null;
     var toast = document.createElement('div');
     toast.style.cssText = 'position:absolute;pointer-events:none;z-index:2;display:none;' +
       'left:' + (TOAST.x / W * 100) + '%;top:' + (TOAST.y / H * 100) + '%;width:' + (TOAST.w / W * 100) + '%;height:' + (TOAST.h / H * 100) + '%;';
     var toastImg = document.createElement('img');
-    toastImg.src = 'assets/case-study-1/proto/toast.png?v=202609241803'; toastImg.alt = ''; toastImg.draggable = false;
+    toastImg.src = 'assets/case-study-1/proto/toast.png?v=20261111'; toastImg.alt = ''; toastImg.draggable = false;
     toastImg.style.cssText = 'display:block;width:100%;height:100%;pointer-events:none;';
     toast.appendChild(toastImg); phone.appendChild(toast);
+    // the "..." menu (screen 4): a cut-out laid over the live Staff screen, so Staff keeps its scroll position underneath
+    var MENU = { x: 112, y: 70, w: 281, h: 135 };
+    var menu = document.createElement('div');
+    menu.style.cssText = 'position:absolute;pointer-events:none;z-index:1;display:none;' +
+      'left:' + (MENU.x / W * 100) + '%;top:' + (MENU.y / H * 100) + '%;width:' + (MENU.w / W * 100) + '%;height:' + (MENU.h / H * 100) + '%;';
+    var menuImg = document.createElement('img');
+    menuImg.src = 'assets/case-study-1/proto/menu.png?v=20261111'; menuImg.alt = ''; menuImg.draggable = false;
+    menuImg.style.cssText = 'display:block;width:100%;height:100%;pointer-events:none;';
+    menu.appendChild(menuImg); phone.appendChild(menu);
     var TOAST_OFF = 'translateY(' + ((H - TOAST.y) / TOAST.h * 100) + '%)';
     function hideToast() {
       clearTimeout(toastTimer);
@@ -225,6 +239,7 @@
     }
     function hidePieces() {
       hideToast();
+      menu.getAnimations().forEach(function (a) { a.cancel(); }); menu.style.display = 'none';
       dim.getAnimations().forEach(function (a) { a.cancel(); }); dim.style.display = 'none';
       Object.keys(SHEETS).forEach(function (k) {
         var s = SHEETS[k];
@@ -239,26 +254,29 @@
       s.fadeEls.forEach(function (e) { e.animate(isUp ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 1 }, { opacity: 0 }], o); });
       s.sheet.animate(isUp ? [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }] : [{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }], o);
       pushTimer = setTimeout(function () {
+        if (isUp && s.keep) return;                      // the sheet and dim stay in place over the live screen beneath
         hidePieces();
         if (isUp) { screens[n].style.transitionDuration = '0s'; screens[n].classList.add('is-active'); }   // hand over to the full frame
+        if (n === 4) menu.style.display = '';            // closing the New Ticket sheet lands back on Staff with its menu open
       }, PUSH_MS);
     }
     function go(n, soft, pop) {
       clearTimeout(timer);
       clearTimeout(pushTimer);
-      var leavingToast = cur === 8 && n !== 8;
+      var leavingToast = cur === 10 && n !== 10;
       hidePieces();
       if (AUTO[n]) timer = setTimeout(function () { go(AUTO[n][0], AUTO[n][2]); }, AUTO[n][1]);
       var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       var push = !soft && !pop && !still && PUSH[cur + '>' + n];
       var up = !soft && !still && UP[cur + '>' + n], down = !soft && !still && DOWN[cur + '>' + n];
-      pop = !soft && pop && !still && cur !== n;   // back arrow: current screen slides away to the right, previous one slides back in
-      var from = String(cur), fromImg = from === '8' ? '2' : from;   // screen 8 has no image of its own (it is screen 2 + the alert)
+      var fromBase = BASE[String(cur)] || String(cur);
+      pop = !soft && pop && !still && cur !== n && fromBase !== String(n);   // back arrow: current screen slides away to the right, previous one slides back in
+      var from = String(cur), fromImg = BASE[from] || from;
       var sh = up && SHEETS[n] ? SHEETS[n] : (down && SHEETS[from] ? SHEETS[from] : null);   // sheet-only transition for screens 5 and 7
-      // the "Ticket Created" alert (screen 8) sits on top of Quotes about Staff (screen 2): keep 2 underneath and just fade the alert in
-      var under = n === 8 ? '2' : null;
+      // the "Ticket created" alert (screen 10) sits on top of Staff (screen 2): keep 2 underneath and just fade the alert in
+      var under = BASE[n] || null;
       Object.keys(screens).forEach(function (k) {
-        var img = screens[k], on = n === 8 ? k === '2' : (k === String(n) || k === under);   // screen 8 is just screen 2 plus the alert
+        var img = screens[k], on = BASE[n] ? k === BASE[n] : (k === String(n) || k === under);   // screens 4 and 10 are just screen 2 plus an overlay
         img.getAnimations().forEach(function (an) { an.cancel(); });
         if (push || pop || up || down) {
           img.style.transitionDuration = '0s';
@@ -266,36 +284,39 @@
         } else if (soft) {
           // soft: the incoming screen is already there underneath; only the outgoing one fades, slowly
           img.style.transitionDuration = on ? '0s' : (img.classList.contains('is-active') ? '0.5s' : '0s');
-        } else if (n === 8) {
+        } else if (BASE[n]) {
           img.style.transitionDuration = k === under ? '0s' : '0.3s';
         } else {
           img.style.transitionDuration = '';
         }
         img.classList.toggle('is-active', on);
       });
+      var menuOn = n === 4 || (sh && from === '4');
+      menu.style.display = menuOn ? '' : 'none';
+      if (n === 4 && from !== '4' && !still && !sh) menu.animate([{ opacity: 0, transform: 'scale(0.96)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 140, easing: 'ease-out' });
       if (sh) {
         sheetTransition(sh, n, !!up);
       } else if (up || down) {
         if (up) screens[n].animate([{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }], { duration: PUSH_MS, easing: EASE_PUSH });
-        else screens[from].animate([{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }], { duration: PUSH_MS, easing: EASE_PUSH });
+        else screens[fromImg].animate([{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }], { duration: PUSH_MS, easing: EASE_PUSH });
         pushTimer = setTimeout(function () {
-          if (screens[from] && from !== String(n)) screens[from].classList.remove('is-active');
+          if (from !== String(n)) { if (screens[from]) screens[from].classList.remove('is-active'); if (screens[fromImg] && fromImg !== String(n)) screens[fromImg].classList.remove('is-active'); }
         }, PUSH_MS);
       } else if (pop) {
         screens[n].animate([{ transform: 'translateX(-28%)', filter: 'brightness(0.88)' }, { transform: 'translateX(0)', filter: 'brightness(1)' }], { duration: PUSH_MS, easing: EASE_PUSH });
-        screens[from].animate([{ transform: 'translateX(0)' }, { transform: 'translateX(100%)' }], { duration: PUSH_MS, easing: EASE_PUSH });
+        screens[fromImg].animate([{ transform: 'translateX(0)' }, { transform: 'translateX(100%)' }], { duration: PUSH_MS, easing: EASE_PUSH });
         pushTimer = setTimeout(function () {
-          if (screens[from] && from !== String(n)) screens[from].classList.remove('is-active');
+          if (from !== String(n)) { if (screens[from]) screens[from].classList.remove('is-active'); if (screens[fromImg] && fromImg !== String(n)) screens[fromImg].classList.remove('is-active'); }
         }, PUSH_MS);
       } else if (push) {
         screens[n].animate([{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }], { duration: PUSH_MS, easing: EASE_PUSH });
-        screens[from].animate([{ transform: 'translateX(0)', filter: 'brightness(1)' }, { transform: 'translateX(-28%)', filter: 'brightness(0.88)' }], { duration: PUSH_MS, easing: EASE_PUSH });
+        screens[fromImg].animate([{ transform: 'translateX(0)', filter: 'brightness(1)' }, { transform: 'translateX(-28%)', filter: 'brightness(0.88)' }], { duration: PUSH_MS, easing: EASE_PUSH });
         pushTimer = setTimeout(function () {
-          if (screens[from] && from !== String(n)) screens[from].classList.remove('is-active');
+          if (from !== String(n)) { if (screens[from]) screens[from].classList.remove('is-active'); if (screens[fromImg] && fromImg !== String(n)) screens[fromImg].classList.remove('is-active'); }
         }, PUSH_MS);
       }
       // alert in: push up from below; alert out (auto-dismiss): push back down. Leaving any other way removes it at once.
-      if (n === 8) {
+      if (n === 10) {
         toast.style.display = '';
         if (!still) {
           toast.animate([{ transform: TOAST_OFF }, { transform: 'translateY(0)' }], { duration: PUSH_MS, easing: EASE_PUSH });
@@ -305,29 +326,56 @@
         toast.animate([{ transform: 'translateY(0)' }, { transform: TOAST_OFF }], { duration: PUSH_MS, easing: EASE_PUSH, fill: 'forwards' });
         toastTimer = setTimeout(hideToast, PUSH_MS);
       }
+      if (push) resetScroll(n);                          // going forward into a screen starts it at the top (going back keeps where you were)
       cur = n;
       Object.keys(layers).forEach(function (k) { layers[k].style.display = k === String(n) ? '' : 'none'; });
     }
     Object.keys(FLOW).forEach(function (n) {
       var layer = document.createElement('div');
-      layer.style.cssText = 'position:absolute;inset:0;' + (n === '1' ? '' : 'display:none');
+      layer.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:4;' + (n === '1' ? '' : 'display:none');   // the layer itself never takes clicks or scrolls; only its buttons do
       FLOW[n].forEach(function (h) {
+        if (h[6] === 'dead') {                              // looks like a button but does nothing (it only keeps taps from reaching the screen underneath)
+          var blk = document.createElement('div');
+          blk.className = 'proto-block'; blk.setAttribute('aria-hidden', 'true');
+          blk.style.left = (h[0] / W * 100) + '%'; blk.style.top = (h[1] / H * 100) + '%';
+          blk.style.width = (h[2] / W * 100) + '%'; blk.style.height = (h[3] / H * 100) + '%';
+          layer.appendChild(blk);
+          return;
+        }
         var b = document.createElement('button');
+        b.style.pointerEvents = 'auto';
         b.type = 'button'; b.className = 'proto-hot' + (h[6] === 'btn' ? ' proto-restart' : ''); b.setAttribute('aria-label', h[5]);
-        if (h[6] === 'btn') b.textContent = h[5];
+        if (h[6] === 'btn') {                                  // the Figma button artwork (its soft glow spills outside the 353x64 tap area)
+          var bi = document.createElement('img'); bi.src = 'assets/case-study-1/proto/reset-btn.png?v=20261112'; bi.alt = ''; bi.draggable = false; b.appendChild(bi);
+        }
         b.style.left = (h[0] / W * 100) + '%'; b.style.top = (h[1] / H * 100) + '%';
         b.style.width = (h[2] / W * 100) + '%'; b.style.height = (h[3] / H * 100) + '%';
-        b.addEventListener('click', function () { go(h[4], false, h[5] === 'Back'); });
+        b.addEventListener('click', function () { go(h[4], false, h[5] === 'Back'); if (h[5] === 'Reset prototype') setTimeout(resetAll, 400); });
         layer.appendChild(b);
       });
       layers[n] = layer; phone.appendChild(layer);
     });
+      // tap areas that live inside a scrolling screen (Home, Staff, Positive Categories)
+      phone.querySelectorAll('[data-go]').forEach(function (b) {
+        b.addEventListener('click', function () { go(+b.getAttribute('data-go'), false, false); });
+      });
+      function scroller(n) { var s = screens[n]; return s && s.querySelector ? s.querySelector('.home-scroll, .scr-scroll') : null; }
+      function resetScroll(n) { var sc = scroller(n); if (sc) sc.scrollTop = 0; }
+      function resetAll() { Object.keys(screens).forEach(resetScroll); phone.querySelectorAll('.proto-scr').forEach(function (e) { e.classList.remove('is-collapsed'); }); }
+      // Staff: the large title scrolls away and the small centred title fades into the nav bar (with the card header it changes)
+      phone.querySelectorAll('.scr-scroll[data-collapse]').forEach(function (sc) {
+        var scr = sc.closest('.proto-scr'), at = +sc.getAttribute('data-collapse');
+        sc.addEventListener('scroll', function () { scr.classList.toggle('is-collapsed', sc.scrollTop > at); }, { passive: true });
+      });
       // tapping a dead spot flashes the tappable areas of the current screen for a second (skips full-screen "dismiss" areas)
       phone.addEventListener('click', function (e) {
         if (e.target.closest && e.target.closest('.proto-hot')) return;
         Object.keys(layers).forEach(function (k) {
           if (layers[k].style.display === 'none') return;
-          layers[k].querySelectorAll('.proto-hot').forEach(function (b) {
+          var hs = Array.prototype.slice.call(layers[k].querySelectorAll('.proto-hot'));
+          var base = screens[k] || screens[BASE[k]];
+          if (base) hs = hs.concat(Array.prototype.slice.call(base.querySelectorAll('.proto-hot')));
+          hs.forEach(function (b) {
             var l = b.getAttribute('aria-label');
             if (l === 'Close menu' || l === 'Dismiss') return;
             b.classList.remove('proto-flash');
@@ -345,6 +393,7 @@
         var r = box.getBoundingClientRect();
         if (r.bottom < 0 || r.top > window.innerHeight) return;
         go(1);
+        setTimeout(resetAll, 400);
       });
   });
 })();
