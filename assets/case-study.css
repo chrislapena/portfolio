@@ -708,9 +708,6 @@ svg.sol-f { width: 153.54px; height: 29.16px; overflow: visible; color: var(--in
 /* a tap area that does nothing (e.g. the menu's Forward): it only stops taps falling through to the screen underneath */
 .proto-block { position: absolute; pointer-events: auto; }
 
-/* small, quiet disclaimer centred under the Interactive Prototype */
-.proto-note { margin: 44px auto 0; max-width: 720px; text-align: center; font-size: 13px; line-height: 1.5; letter-spacing: -0.1px; color: #8a8a8a; }
-@media (max-width: 900px) { .proto-note { margin-top: 32px; padding: 0 4px; } }
-/* the space under the disclaimer mirrors the space above it (case study 1 only; the other pages keep the 100px page end) */
-.page-end.page-end--note { height: 44px; }
-@media (max-width: 900px) { .page-end.page-end--note { height: 32px; } }
+/* the disclaimer under the last paragraph of the Retrospective: small, italic, quiet */
+.col p.retro-note, .retro-note { margin: 20px 0 0; font-size: 14px; line-height: 1.5; letter-spacing: -0.1px; font-style: italic; color: #8a8a8a; }
+.retro-note em { font-style: italic; }
