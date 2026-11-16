@@ -711,3 +711,18 @@ svg.sol-f { width: 153.54px; height: 29.16px; overflow: visible; color: var(--in
 /* the disclaimer under the last paragraph of the Retrospective: small, italic, quiet */
 .col p.retro-note, .retro-note { margin: 20px 0 0; font-size: 14px; line-height: 1.5; letter-spacing: -0.1px; font-style: italic; color: #8a8a8a; }
 .retro-note em { font-style: italic; }
+
+/* case study 2: the Mapping -> Templates prototype. Its screens are 1440 x 960 (3:2), so the slot and the viewport follow that ratio instead of the Home page prototype's 923 x 680 */
+.p3-slot--cs2 { aspect-ratio: 3 / 2; }
+.p3-slot--cs2 .p3-viewport { aspect-ratio: 3 / 2; }
+.proto-box--cs2 { height: 700px; background-size: cover; background-position: center; background-repeat: no-repeat; }
+@media (max-width: 900px) { .proto-box--cs2 { height: auto; } }
+/* case study 2 prototype: the screens come with their own rounded corners (transparent PNG/WebP), so the viewport itself is see-through and square;
+   the soft shadow is a drop-shadow, which follows the rounded shape of the picture instead of the viewport's rectangle */
+.p3-slot--cs2 .p3-viewport { background: transparent; border-radius: 0; box-shadow: none; filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.32)); }
+
+/* case study 2 hero: same "stack" hero as case studies 3 and 5 (background stretches to any width, the screen stays at its native size, centred),
+   so nothing is drawn or filled in beside the banner on wide screens. The screen is 878 x 350, 30px down, and runs off the bottom edge. */
+.band--cs2 .band-mock { width: 878px; height: auto; top: 30px; border-radius: 0; }
+@media (max-width: 900px) { .band--cs2 .band-mock { width: 68.6vw; top: 2.34vw; border-radius: 0; } }
+@media (max-width: 440px) { .band--cs2 { background-size: cover; } .band--cs2 .band-mock { display: none; } }
