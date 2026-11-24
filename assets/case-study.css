@@ -726,3 +726,7 @@ svg.sol-f { width: 153.54px; height: 29.16px; overflow: visible; color: var(--in
 .band--cs2 .band-mock { width: 878px; height: auto; top: 30px; border-radius: 0; }
 @media (max-width: 900px) { .band--cs2 .band-mock { width: 68.6vw; top: 2.34vw; border-radius: 0; } }
 @media (max-width: 440px) { .band--cs2 { background-size: cover; } .band--cs2 .band-mock { display: none; } }
+
+/* case study 3 prototype: the viewport has ONE fixed rounded edge, the same on every screen and at every scroll position, equal to the corner of the screen PNGs
+   (20px on the 1440px design = 20/1440 of the viewport width). Transparent behind it, so nothing white can show in the corners. */
+.p3-viewport[data-proto3] { background: transparent; border-radius: calc(var(--p3-w, 923px) * 20 / 1440); }
